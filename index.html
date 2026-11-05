@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<meta charset="utf-8">
+<title>PH Get Started Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: version tabs + controls, then C1 and C2 phones side by side. Every pixel on the phones comes from 2× Figma exports;
+   V1 animates cropped regions of those exports, V2 overlays a slider on the phone-screen rect. */
+:root{
+  --shell-bg:#EEF0EE; --shell-fg:#1E2421; --shell-muted:#5C665F; --shell-line:#D5DBD6; --shell-card:#FFFFFF; --shell-accent:#078E40; --shell-chip:#E1EFE6;
+  --ds-text1:rgba(38,38,38,.85); --ds-accent:#0CD25F; --ds-neg:#FF2E4D;
+  --f-ui:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--shell-bg:#141816;--shell-fg:#E6ECE8;--shell-muted:#9AA6A0;--shell-line:#2C3430;--shell-card:#1C2220;--shell-accent:#3ADB7E;--shell-chip:#1F3328;color-scheme:dark}}
+:root[data-theme="dark"]{--shell-bg:#141816;--shell-fg:#E6ECE8;--shell-muted:#9AA6A0;--shell-line:#2C3430;--shell-card:#1C2220;--shell-accent:#3ADB7E;--shell-chip:#1F3328;color-scheme:dark}
+[hidden]{display:none!important}
+html,body{background:var(--shell-bg);color:var(--shell-fg)}
+body{font-family:var(--f-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+header{display:flex;flex-direction:column;gap:8px}
+h1{font-size:clamp(22px,3.2vw,30px);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.lede{margin:0;color:var(--shell-muted);font-size:15px;line-height:1.55;max-width:70ch}
+.lede a{color:var(--shell-accent)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:600 14px/1.2 var(--f-ui);text-align:left;border:1px solid var(--shell-line);background:var(--shell-card);color:var(--shell-fg);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0}
+.tab small{font-weight:400;font-size:12.5px;color:var(--shell-muted);line-height:1.4}
+.tab[aria-selected="true"]{border-color:var(--shell-accent);box-shadow:inset 0 0 0 1px var(--shell-accent);background:var(--shell-chip)}
+.tab:focus-visible,.btn:focus-visible,.step:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;background:var(--shell-card);border:1px solid var(--shell-line);border-radius:16px;padding:14px 16px;min-height:44px}
+.btn{font:600 14px/1 var(--f-ui);border:1px solid var(--shell-line);background:transparent;color:var(--shell-fg);border-radius:999px;padding:10px 16px;cursor:pointer}
+.btn:hover{border-color:var(--shell-accent)}
+.steps{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.step{font:500 12px/1 var(--f-ui);color:var(--shell-muted);border:1px solid var(--shell-line);border-radius:999px;padding:7px 10px;background:transparent;cursor:pointer}
+.step.on{color:var(--shell-fg);border-color:var(--shell-accent);background:var(--shell-chip)}
+.note{color:var(--shell-muted);font-size:14px;flex:1;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0;align-items:center}
+.label{display:flex;align-items:baseline;gap:10px;justify-content:center}
+.tag{font:700 12px/1 var(--f-ui);letter-spacing:.06em;color:var(--shell-accent);background:var(--shell-chip);padding:6px 9px;border-radius:999px}
+.label h2{margin:0;font-size:17px;font-weight:600}
+.stage{width:100%;max-width:360px;aspect-ratio:360/800;position:relative}
+.device{position:absolute;inset:0;border-radius:24px;box-shadow:0 0 0 8px #1E2421,0 18px 40px rgba(0,0,0,.18);overflow:hidden;background:#F6F5F5}
+.screen{width:360px;height:800px;transform-origin:0 0;position:absolute;left:0;top:0;overflow:hidden}
+.layer{position:absolute;inset:0;background-size:360px 800px;background-repeat:no-repeat}
+/* ---------- V1: crops inside the phone screen (x88 y102 w184 h380 in Figma) ---------- */
+.v1 .clip{position:absolute;left:88px;top:102px;width:184px;height:380px;border-radius:20px;overflow:hidden}
+.v1 .crop{position:absolute;background-size:360px 800px;background-repeat:no-repeat}
+.v1 .cd{left:0;top:72px;width:184px;height:134px;background-position:-88px -174px}
+.v1 .full{left:0;top:0;width:184px;height:380px;background-position:-88px -102px}
+.v1 .c2{opacity:0;transform:translateY(-16px)}
+.v1 .c3{opacity:0;transform-origin:50% 30%}
+.v1 .c4{opacity:0}
+.v1 .pulse{position:absolute;left:64px;top:80px;width:56px;height:56px;border-radius:50%;opacity:0}
+.v1 .red{position:absolute;left:36px;top:296px;width:40px;height:40px;border-radius:50%;background:var(--ds-neg);opacity:0;transform:scale(1)}
+.v1.anim .c2{transition:opacity .35s ease-out,transform .5s cubic-bezier(.2,.8,.2,1)}
+.v1.anim .c4{transition:opacity .45s ease-out}
+.v1.s1 .pulse{opacity:1;animation:ring 1.1s ease-out infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(209,208,208,.55)}100%{box-shadow:0 0 0 16px rgba(209,208,208,0)}}
+.v1.s2 .c2,.v1.s3 .c2{opacity:1;transform:none}
+.v1.s3 .c3{opacity:1}
+.v1.anim.s3 .c3{animation:pop .5s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+.v1.tap .red{animation:tapExpand .75s cubic-bezier(.55,0,.35,1) forwards}
+@keyframes tapExpand{0%{opacity:1;transform:scale(1)}16%{opacity:1;transform:scale(.82)}32%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(18)}}
+.v1.s4 .c3,.v1.s4 .c2{opacity:1}
+.v1.s4 .red{opacity:1;transform:scale(18)}
+.v1.s4 .c4{opacity:1}
+.v1.anim.s4 .c4{animation:reveal .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes reveal{0%{opacity:0;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+.v1.s4.settled .red{opacity:0}
+.v1.fadeout .clip{animation:fadeclip .35s ease-in forwards}
+@keyframes fadeclip{to{opacity:0}}
+/* ---------- V2: slider on the visible phone-screen rect (x50 y82 w260 h410) ---------- */
+.v2 .afterwrap{position:absolute;inset:0;clip-path:inset(0 0 0 calc((50px + 260px * var(--p))))}
+.v2 .glowl{opacity:var(--g,0);transition:opacity .25s ease-out}
+.v2 .ui{position:absolute;left:50px;top:82px;width:260px;height:410px;border-radius:16px 16px 0 0;overflow:hidden}
+.v2 .line{position:absolute;top:0;bottom:0;left:calc(var(--p)*100%);width:2px;margin-left:-1px;background:#fff;pointer-events:none}
+.v2 .knob{position:absolute;top:50%;left:calc(var(--p)*100%);width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:#fff;display:grid;place-items:center;font:600 14px/1 var(--f-ui);color:var(--ds-text1);box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none}
+.v2 .bl,.v2 .al{position:absolute;bottom:16px;background:#fff;color:var(--ds-text1);font:600 11px/14px var(--f-ui);border-radius:999px;padding:6px 12px;pointer-events:none}
+.v2 .bl{left:12px} .v2 .al{right:12px}
+.v2 input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;touch-action:none}
+.v2 .ui:focus-within .knob{box-shadow:0 0 0 3px var(--ds-accent),0 2px 8px rgba(0,0,0,.25)}
+.notes{align-self:stretch;background:var(--shell-card);border:1px solid var(--shell-line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.5;color:var(--shell-muted)}
+.notes b{color:var(--shell-fg);font-weight:600}
+footer{font-size:12.5px;line-height:1.6;color:var(--shell-muted);border-top:1px solid var(--shell-line);padding-top:16px;max-width:82ch}
+@media (prefers-reduced-motion:reduce){.v1 *{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>PH Get Started · value demo, 2 versions</h1>
+    <p class="lede">Proposal UI for the Android onboarding first screen; one version will be chosen for the Stage 1 test. The phone screens are 2× exports from Figma. Inside each version, C1 and C2 differ only in the message and call source. Figma source: <a href="https://www.figma.com/design/KJk0ZUUonXGTAs1XWb8Okf/01_Onboarding?node-id=14455-6474" target="_blank" rel="noopener">01_Onboarding · V1 / V2 × C1 / C2</a>.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Presentation version">
+    <button class="tab" role="tab" aria-selected="true" data-v="v1">V1 · Simulated call (story)<small>Rings, the Whoscall dialog slides in and shows “Scammer”, Decline is tapped and the call is blocked.</small></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Top half of a phone on a light screen; drag toward After and the background glows.</small></button>
+  </div>
+
+  <div class="bar" role="group" aria-label="Animation controls">
+    <button class="btn" id="play" aria-pressed="true">Pause</button>
+    <div class="steps" id="steps"></div>
+    <span class="note" id="v2note" hidden>The handle wiggles on load to hint that it can be dragged. Drag it on either phone.</span>
+    <button class="btn" id="replay" hidden>Replay hint</button>
+  </div>
+
+  <div class="grid">
+    <section class="col" aria-label="Version C1">
+      <div class="label"><span class="tag">C1</span><h2>Caller ID</h2></div>
+      <div class="stage"><div class="device"><div class="screen" data-c="c1"></div></div></div>
+      <div class="notes"><span><b>Message:</b> know who's calling before you answer.</span><span><b>Example call:</b> a phone call.</span></div>
+    </section>
+    <section class="col" aria-label="Version C2">
+      <div class="label"><span class="tag">C2</span><h2>Phone + Viber + WhatsApp</h2></div>
+      <div class="stage"><div class="device"><div class="screen" data-c="c2"></div></div></div>
+      <div class="notes"><span><b>Message:</b> know who's calling on Phone, Viber &amp; WhatsApp.</span><span><b>Example call:</b> a Viber call; the dialog shows “Viber” next to the country.</span></div>
+    </section>
+  </div>
+
+  <footer>All phone pixels are 2× PNG exports of the Figma frames (720×1600, shown at 360×800). V1 motion is made by moving and fading cropped parts of those exports; the red tap-and-expand transition and the ringing halo are drawn by this page. In V2 only the slider line, handle and Before/After labels are drawn by this page. Numbers and labels are examples, not a real lookup.</footer>
+</div>
+
+<script>
+const A='prototype_assets/';
+const BEATS=[{name:'Beat 1 · Ringing'},{name:'Beat 2 · Searching'},{name:'Beat 3 · Identified'},{name:'Beat 4 · Declined'}];
+const screens=[...document.querySelectorAll('.screen')];
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ver='v1', playing=true, timers=[], curBeat=0; const sliders=[];
+const VER='?v=20261105c';
+const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
+function renderV1(el){const c=el.dataset.c;
+  el.className='screen v1 s1';
+  el.innerHTML=`<div class="layer" style="${bg(c,'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} call story"></div>
+  <div class="clip"><i class="pulse"></i>
+    <div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>
+    <div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>
+    <i class="red"></i>
+    <div class="crop full c4" style="${bg(c,'v1_C_b4.png')}"></div>
+  </div>`;}
+function setState(st,{anim=true,extra=''}={}){ screens.forEach(s=>{ s.className='screen v1 '+st+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }); }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+const at=(ms,fn)=>timers.push(setTimeout(fn,ms));
+function markStep(i){ curBeat=i; stepBtns.forEach((b,j)=>b.classList.toggle('on',j===i)); }
+function runStory(){
+  clearTimers(); if(!playing||ver!=='v1') return;
+  setState('s1',{anim:false}); markStep(0);
+  at(1500,()=>{ setState('s2'); markStep(1); });
+  at(2700,()=>{ setState('s3'); markStep(2); });
+  at(4200,()=>{ setState('s3',{extra:'tap'}); });
+  at(4950,()=>{ setState('s4'); markStep(3); });
+  at(5500,()=>{ setState('s4',{extra:'settled'}); });
+  at(6700,()=>{ setState('s4',{extra:'settled fadeout'}); });
+  at(7050,()=>runStory());
+}
+function showStatic(i){ clearTimers(); const st=['s1','s2','s3','s4'][i]; setState(st,{anim:false,extra:i===3?'settled':''}); markStep(i); }
+function renderV2(el){const c=el.dataset.c; el.className='screen v2'; el.style.setProperty('--p','.5');
+  el.innerHTML=`<div class="layer" style="${bg(c,'v2_C_before.png')}" role="img" aria-label="${c.toUpperCase()} before: call screen with only the number"></div><div class="layer glowl" style="${bg(c,'v2_C_before_glow.png')}"></div>
+  <div class="afterwrap"><div class="layer" style="${bg(c,'v2_C_after.png')}" role="img" aria-label="${c.toUpperCase()} after: same call screen with the Whoscall call dialog"></div><div class="layer glowl" style="${bg(c,'v2_C_after_glow.png')}"></div></div>
+  <div class="ui"><i class="line"></i><span class="knob">‹ ›</span><span class="bl">Before</span><span class="al">After</span><input type="range" min="0" max="100" value="50" step="1" aria-label="Compare the call screen before and after Whoscall"></div>`;
+  const inp=el.querySelector('input'); const st={el,inp,touched:false,set(p){el.style.setProperty('--p',String(p/100)); el.style.setProperty('--g',String(Math.min(1,Math.max(0,(50-p)/35)))); inp.value=String(Math.round(p));}};
+  inp.addEventListener('input',()=>{st.touched=true; st.set(+inp.value);}); inp.addEventListener('pointerdown',()=>{st.touched=true;});
+  sliders.push(st);}
+function wiggle(){
+  if(reduce) return; sliders.forEach(st=>{st.touched=false; st.set(50);});
+  const k=[[0,50],[260,64],[620,36],[900,58],[1140,42],[1340,50]]; const keys=[...k,...k.map(([t,p])=>[t+1900,p])];
+  const t0=performance.now()+500, end=keys[keys.length-1][0]; const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  (function frame(now){ if(ver!=='v2') return; const t=now-t0;
+    if(t>=0){ let i=0; while(i<keys.length-2&&t>keys[i+1][0]) i++; const [ta,pa]=keys[i],[tb,pb]=keys[i+1]; const r=Math.min(1,Math.max(0,(t-ta)/(tb-ta)));
+      sliders.forEach(st=>{ if(!st.touched) st.set(pa+(pb-pa)*ease(r)); }); }
+    if(t<end) requestAnimationFrame(frame); else sliders.forEach(st=>{ if(!st.touched) st.set(50); });
+  })(performance.now());
+}
+const stepsEl=document.getElementById('steps');
+const stepBtns=BEATS.map((b,i)=>{const x=document.createElement('button');x.className='step';x.type='button';x.textContent=b.name;
+  x.addEventListener('click',()=>{ playing=false; play.textContent='Play'; play.setAttribute('aria-pressed','false'); showStatic(i); });
+  stepsEl.appendChild(x);return x;});
+const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
+play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) runStory(); else clearTimers(); });
+replay.addEventListener('click',wiggle);
+function setVer(v){
+  ver=v; clearTimers(); sliders.length=0;
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.v===v)));
+  const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=!isV2;
+  screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit();
+  if(isV2) wiggle(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else runStory(); }
+  try{ if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);}catch(e){}
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setVer(t.dataset.v)));
+function fromHash(){return (location.hash||'').slice(1)==='v2'?'v2':'v1';}
+window.addEventListener('hashchange',()=>{const v=fromHash(); if(v!==ver) setVer(v);});
+function fit(){document.querySelectorAll('.stage').forEach(st=>{st.querySelector('.screen').style.transform='scale('+(st.clientWidth/360)+')';});}
+new ResizeObserver(fit).observe(document.querySelector('.grid'));
+['c1','c2'].forEach(c=>{[1,2,3,4].forEach(b=>{new Image().src=`${A}v1_${c}_b${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+setVer(fromHash());
+</script>
+
+</html>
