@@ -106,13 +106,13 @@ footer{font-size:12.5px;line-height:1.6;color:var(--shell-muted);border-top:1px 
 
   <div class="tabs" role="tablist" aria-label="Presentation version">
     <button class="tab" role="tab" aria-selected="true" data-v="v1">V1 · Simulated call (story)<small>Rings, the Whoscall dialog shows “Scammer”; drag the handle to Decline or Answer (slides to Decline if left alone).</small></button>
-    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Drag the slider freely; drag toward After and the background glows. Left alone for 2 s, it slides to After by itself.</small></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Drag the slider freely; drag toward After and the background glows. It wiggles first, then slides to After by itself if left alone.</small></button>
   </div>
 
   <div class="bar" role="group" aria-label="Animation controls">
     <button class="btn" id="play" aria-pressed="true">Pause</button>
     <div class="steps" id="steps"></div>
-    <span class="note" id="v2note" hidden>Drag the handle freely on either phone. Left alone for 2 s, it slides to After by itself, then returns to the middle.</span>
+    <span class="note" id="v2note" hidden>The handle wiggles on load to hint that it can be dragged; drag it freely on either phone. Left alone, it then slides to After by itself and returns to the middle.</span>
     <button class="btn" id="replay" hidden>Restart demo</button>
   </div>
 
@@ -208,16 +208,25 @@ function renderV2(el){const c=el.dataset.c; el.className='screen v2'; el.style.s
   const up=()=>{ if(!st.down) return; st.down=false; arm(st); };
   inp.addEventListener('pointerup',up); inp.addEventListener('pointercancel',up); inp.addEventListener('change',up);
   sliders.push(st);}
-/* Idle demo: 2 s untouched → slide to After (handle left, background glows) → hold → back to the middle → wait again. */
-const IDLE=2000, AFTER_P=12, TO_AFTER=1100, HOLD=1600, BACK=800;
+/* On load: wiggle twice to hint "draggable" → pause → auto demo.
+   Auto demo: slide to After (handle left, background glows) → hold → back to the middle → wait IDLE → repeat.
+   Any touch stops it; IDLE after the last touch the demo resumes. */
+const WIGGLE_DELAY=400, AFTER_WIGGLE=1500, IDLE=2500, AFTER_P=12, TO_AFTER=1100, HOLD=1600, BACK=800;
+const WIG=[[0,50],[260,64],[620,36],[900,58],[1140,42],[1340,50]], WIG_KEYS=[...WIG,...WIG.map(([t,p])=>[t+1900,p])];
+function playKeys(st,keys,done){ clearTimeout(st.raf); const t0=performance.now(), end=keys[keys.length-1][0];
+  (function frame(){ if(ver!=='v2') return; const t=performance.now()-t0; let i=0; while(i<keys.length-2&&t>keys[i+1][0]) i++;
+    const [ta,pa]=keys[i],[tb,pb]=keys[i+1]; const r=Math.min(1,Math.max(0,(t-ta)/(tb-ta))); st.set(pa+(pb-pa)*easeIO(r));
+    if(t<end) st.raf=setTimeout(frame,16); else { st.set(keys[keys.length-1][1]); if(done) done(); } })(); }
+function runAuto(st){ animP(st,AFTER_P,TO_AFTER,()=>{ st.idle=setTimeout(()=>animP(st,50,BACK,()=>arm(st)),HOLD); }); }
 const easeIO=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
 function stopAuto(st){ clearTimeout(st.idle); clearTimeout(st.raf); }
 function animP(st,to,dur,done){ clearTimeout(st.raf); const from=st.p, t0=performance.now();
   (function frame(){ if(ver!=='v2') return; const r=Math.min(1,(performance.now()-t0)/dur); st.set(from+(to-from)*easeIO(r));
     if(r<1) st.raf=setTimeout(frame,16); else if(done) done(); })(); }
 function arm(st){ stopAuto(st); if(reduce||ver!=='v2') return;
-  st.idle=setTimeout(()=>animP(st,AFTER_P,TO_AFTER,()=>{ st.idle=setTimeout(()=>animP(st,50,BACK,()=>arm(st)),HOLD); }),IDLE); }
-function restartDemo(){ sliders.forEach(st=>{ stopAuto(st); st.down=false; st.set(50); arm(st); }); }
+  st.idle=setTimeout(()=>runAuto(st),IDLE); }
+function restartDemo(){ sliders.forEach(st=>{ stopAuto(st); st.down=false; st.set(50); if(reduce) return;
+  st.idle=setTimeout(()=>playKeys(st,WIG_KEYS,()=>{ st.idle=setTimeout(()=>runAuto(st),AFTER_WIGGLE); }),WIGGLE_DELAY); }); }
 /* ---------- controls ---------- */
 const stepsEl=document.getElementById('steps');
 const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.className='step';x.type='button';x.textContent=name;
