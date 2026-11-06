@@ -106,14 +106,14 @@ footer{font-size:12.5px;line-height:1.6;color:var(--shell-muted);border-top:1px 
 
   <div class="tabs" role="tablist" aria-label="Presentation version">
     <button class="tab" role="tab" aria-selected="true" data-v="v1">V1 · Simulated call (story)<small>Rings, the Whoscall dialog shows “Scammer”; drag the handle to Decline or Answer (slides to Decline if left alone).</small></button>
-    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Top half of a phone on a light screen; drag toward After and the background glows.</small></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Drag the slider freely; drag toward After and the background glows. Left alone for 2 s, it slides to After by itself.</small></button>
   </div>
 
   <div class="bar" role="group" aria-label="Animation controls">
     <button class="btn" id="play" aria-pressed="true">Pause</button>
     <div class="steps" id="steps"></div>
-    <span class="note" id="v2note" hidden>The handle wiggles on load to hint that it can be dragged. Drag it on either phone.</span>
-    <button class="btn" id="replay" hidden>Replay hint</button>
+    <span class="note" id="v2note" hidden>Drag the handle freely on either phone. Left alone for 2 s, it slides to After by itself, then returns to the middle.</span>
+    <button class="btn" id="replay" hidden>Restart demo</button>
   </div>
 
   <div class="grid">
@@ -201,19 +201,23 @@ function renderV2(el){const c=el.dataset.c; el.className='screen v2'; el.style.s
   el.innerHTML=`<div class="layer" style="${bg(c,'v2_C_before.png')}" role="img" aria-label="${c.toUpperCase()} before: call screen with only the number"></div><div class="layer glowl" style="${bg(c,'v2_C_before_glow.png')}"></div>
   <div class="afterwrap"><div class="layer" style="${bg(c,'v2_C_after.png')}" role="img" aria-label="${c.toUpperCase()} after: same call screen with the Whoscall call dialog"></div><div class="layer glowl" style="${bg(c,'v2_C_after_glow.png')}"></div></div>
   <div class="ui"><i class="line"></i><span class="knob">‹ ›</span><span class="bl">Before</span><span class="al">After</span><input type="range" min="0" max="100" value="50" step="1" aria-label="Compare the call screen before and after Whoscall"></div>`;
-  const inp=el.querySelector('input'); const st={el,inp,touched:false,set(p){el.style.setProperty('--p',String(p/100)); el.style.setProperty('--g',String(Math.min(1,Math.max(0,(50-p)/35)))); inp.value=String(Math.round(p));}};
-  inp.addEventListener('input',()=>{st.touched=true; st.set(+inp.value);}); inp.addEventListener('pointerdown',()=>{st.touched=true;});
+  const inp=el.querySelector('input'); const st={el,inp,p:50,down:false,idle:0,raf:0,set(p){st.p=p; el.style.setProperty('--p',String(p/100)); el.style.setProperty('--g',String(Math.min(1,Math.max(0,(50-p)/35)))); inp.value=String(Math.round(p));}};
+  // User drags freely; any touch cancels the auto demo, and 2 s after the last touch the demo runs again.
+  inp.addEventListener('pointerdown',()=>{ st.down=true; stopAuto(st); });
+  inp.addEventListener('input',()=>{ stopAuto(st); st.set(+inp.value); if(!st.down) arm(st); });
+  const up=()=>{ if(!st.down) return; st.down=false; arm(st); };
+  inp.addEventListener('pointerup',up); inp.addEventListener('pointercancel',up); inp.addEventListener('change',up);
   sliders.push(st);}
-function wiggle(){
-  if(reduce) return; sliders.forEach(st=>{st.touched=false; st.set(50);});
-  const k=[[0,50],[260,64],[620,36],[900,58],[1140,42],[1340,50]]; const keys=[...k,...k.map(([t,p])=>[t+1900,p])];
-  const t0=performance.now()+500, end=keys[keys.length-1][0]; const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
-  (function frame(now){ if(ver!=='v2') return; const t=now-t0;
-    if(t>=0){ let i=0; while(i<keys.length-2&&t>keys[i+1][0]) i++; const [ta,pa]=keys[i],[tb,pb]=keys[i+1]; const r=Math.min(1,Math.max(0,(t-ta)/(tb-ta)));
-      sliders.forEach(st=>{ if(!st.touched) st.set(pa+(pb-pa)*ease(r)); }); }
-    if(t<end) requestAnimationFrame(frame); else sliders.forEach(st=>{ if(!st.touched) st.set(50); });
-  })(performance.now());
-}
+/* Idle demo: 2 s untouched → slide to After (handle left, background glows) → hold → back to the middle → wait again. */
+const IDLE=2000, AFTER_P=12, TO_AFTER=1100, HOLD=1600, BACK=800;
+const easeIO=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+function stopAuto(st){ clearTimeout(st.idle); clearTimeout(st.raf); }
+function animP(st,to,dur,done){ clearTimeout(st.raf); const from=st.p, t0=performance.now();
+  (function frame(){ if(ver!=='v2') return; const r=Math.min(1,(performance.now()-t0)/dur); st.set(from+(to-from)*easeIO(r));
+    if(r<1) st.raf=setTimeout(frame,16); else if(done) done(); })(); }
+function arm(st){ stopAuto(st); if(reduce||ver!=='v2') return;
+  st.idle=setTimeout(()=>animP(st,AFTER_P,TO_AFTER,()=>{ st.idle=setTimeout(()=>animP(st,50,BACK,()=>arm(st)),HOLD); }),IDLE); }
+function restartDemo(){ sliders.forEach(st=>{ stopAuto(st); st.down=false; st.set(50); arm(st); }); }
 /* ---------- controls ---------- */
 const stepsEl=document.getElementById('steps');
 const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.className='step';x.type='button';x.textContent=name;
@@ -221,13 +225,13 @@ const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.c
   stepsEl.appendChild(x);return x;});
 const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
-replay.addEventListener('click',wiggle);
+replay.addEventListener('click',restartDemo);
 function setVer(v){
-  ver=v; ctrls.forEach(clr); sliders.length=0;
+  ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.v===v)));
   const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=!isV2;
   screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit();
-  if(isV2) wiggle(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(runStory); }
+  if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(runStory); }
   try{ if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);}catch(e){}
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setVer(t.dataset.v)));
