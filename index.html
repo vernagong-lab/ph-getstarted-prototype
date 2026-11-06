@@ -115,7 +115,24 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes reveal{0%{opacity:0;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
 .v1.s4.settled .flood{opacity:0}
 .v1.s4 .handle,.v1.go .handle{visibility:hidden}
-.v1.fadeout .clip{animation:fadeclip .35s ease-in forwards}
+.v1.fadeout .clip,.v1.fadeout .vee{animation:fadeclip .35s ease-in forwards}
+/* Beat 4 card text (HTML over the text-free export): number + result tag.
+   Tag fill = Colors/Content/Secondary (dark-mode value, the call screen is dark), label Content/Pure Dark */
+.v1 .b4{position:absolute;left:0;right:0;top:176px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.v1 .b4 .num{margin:0;font:400 11px/14px var(--f-ui);color:#d1d0d0}
+.v1 .rtag{font:600 11px/14px var(--f-ui);color:#262626;background:rgba(246,245,245,.6);padding:6px 12px;border-radius:999px}
+/* Vee pops up from the card's bottom-right corner and says the result */
+.v1 .vee{position:absolute;inset:0;pointer-events:none}
+.v1 .vee img{position:absolute;left:224px;top:380px;width:64px;height:auto;opacity:0;transform-origin:60% 100%;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
+.v1 .bub{position:absolute;right:118px;bottom:392px;max-width:148px;margin:0;padding:10px 14px;background:#fff;color:#262626;font:600 13px/17px var(--f-ui);
+  border-radius:16px 16px 4px 16px;box-shadow:0 4px 12px rgba(0,0,0,.22);opacity:0;transform-origin:100% 100%;text-wrap:balance}
+.v1 .bub span{display:none} .v1.dec .bub .bd,.v1.ans .bub .ba{display:inline}
+.v1.s4 .vee img,.v1.s4 .bub{opacity:1}
+.v1.anim.s4 .vee img{animation:veein .6s cubic-bezier(.3,1.5,.5,1) .1s both,bob 2.4s ease-in-out .8s infinite}
+.v1.anim.s4 .bub{animation:bubin .45s cubic-bezier(.3,1.4,.5,1) .4s both}
+@keyframes veein{0%{opacity:0;transform:translate(36px,48px) scale(.4) rotate(20deg)}100%{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-4deg)}}
+@keyframes bubin{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:none}}
 @keyframes fadeclip{to{opacity:0}}
 /* ---------- V2: slider on the visible phone-screen rect (x50 y82 w260 h410) ---------- */
 .v2 .afterwrap{position:absolute;inset:0;clip-path:inset(0 0 0 calc((50px + 260px * var(--p))))}
@@ -263,7 +280,7 @@ html.pvon,html.pvon body{overflow:hidden}
 
 <script>
 const A='prototype_assets/';
-const VER='?v=20261106e';
+const VER='?v=20261106f';
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -278,10 +295,11 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
     <div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>
     <div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>
     <i class="flood"></i>
-    <div class="crop full c4d" style="${bg(c,'v1_C_b4d.png')}"></div>
-    <div class="crop full c4a" style="${bg(c,'v1_C_b4a.png')}"></div>
+    <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}"><div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div></div>
+    <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}"><div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div></div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}v1_handle.png${VER})"></button>
-  </div>`;
+  </div>
+  <div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${A}vee.svg${VER}" alt=""></div>`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
   setHandle(ctl,CENTER); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
 function setState(c,st,{anim=true,extra=''}={}){ c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
@@ -304,7 +322,7 @@ function choose(c,which,manual){
   at(c,600,()=>{ setState(c,'s4',{extra:which}); markStep(which==='dec'?3:4); });
   at(c,1150,()=>setState(c,'s4',{extra:which+' settled'}));
   if(!playing) return;
-  const hold=manual?3800:2600;
+  const hold=manual?4800:3800;
   at(c,hold,()=>setState(c,'s4',{extra:which+' settled fadeout'}));
   at(c,hold+350,()=>runStory(c));
 }
@@ -436,8 +454,7 @@ function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return
   if(r.v!==ver) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
-['c1','c2'].forEach(c=>{['b1','b2','b3','b4d','b4a'].forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+['c1','c2'].forEach(c=>{['b1','b2','b3','b4d_clean','b4a_clean'].forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 { const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
-
 </html>
