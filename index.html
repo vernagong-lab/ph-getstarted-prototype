@@ -9,41 +9,73 @@
 <style>
 /* Layout: version tabs + controls, then C1 and C2 phones side by side. Every pixel on the phones comes from 2× Figma exports;
    V1 animates cropped regions of those exports plus a draggable handle export, V2 overlays a slider on the phone-screen rect. */
+/* Page shell follows Whoscall Mobile DS (Android): Roboto, Type Roles, Colors/* semantic tokens (light + dark export values),
+   Spacing scale (4/8/12/16/20/24/32), Radius scale (12/16/20/round), Pill Button, Android Segmented Control and Chips. */
 :root{
-  --shell-bg:#EEF0EE; --shell-fg:#1E2421; --shell-muted:#5C665F; --shell-line:#D5DBD6; --shell-card:#FFFFFF; --shell-accent:#078E40; --shell-chip:#E1EFE6;
-  --ds-text1:rgba(38,38,38,.85); --ds-accent:#0CD25F; --ds-neg:#FF2E4D;
-  --f-ui:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --bg-default:#f6f5f5;            /* Colors/Background/Default */
+  --surface:#ffffff;               /* Colors/Surface/Default */
+  --surface-l1:#f6f5f5;            /* Colors/Surface/Light 1 (Secondary button) */
+  --surface-l2:#e7e6e6;            /* Colors/Surface/Light 2 */
+  --text-1:rgba(38,38,38,.85);     /* Colors/Text/Primary */
+  --text-2:rgba(38,38,38,.6);      /* Colors/Text/Secondary */
+  --text-3:rgba(38,38,38,.4);      /* Colors/Text/Passive */
+  --content-1:rgba(38,38,38,.85);  /* Colors/Content/Primary (selected chip / segment tile) */
+  --on-content-1:#ffffff;          /* Colors/Content/Pure Bright */
+  --divider:rgba(38,38,38,.08);    /* Colors/Content/Divider */
+  --pressed:rgba(38,38,38,.08);    /* Colors/Content/Pressed */
+  --accent:#0cd25f;                /* Colors/Core/Accent */
+  --accent-text:#078e40;           /* Colors/Text/Accent Variant */
+  --accent-pale:#edfff3;           /* Colors/Vee/Pale */
+  --device:#262626;                /* Colors/Content/Pure Dark */
+  --ds-text1:rgba(38,38,38,.85); --ds-accent:#0cd25f; --ds-neg:#ff2e4d;
+  --f-ui:"Roboto","Noto Sans TC",system-ui,Arial,sans-serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--shell-bg:#141816;--shell-fg:#E6ECE8;--shell-muted:#9AA6A0;--shell-line:#2C3430;--shell-card:#1C2220;--shell-accent:#3ADB7E;--shell-chip:#1F3328;color-scheme:dark}}
-:root[data-theme="dark"]{--shell-bg:#141816;--shell-fg:#E6ECE8;--shell-muted:#9AA6A0;--shell-line:#2C3430;--shell-card:#1C2220;--shell-accent:#3ADB7E;--shell-chip:#1F3328;color-scheme:dark}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg-default:#3d3c3c; --surface:#262626; --surface-l1:#3d3c3c; --surface-l2:#434242;
+  --text-1:rgba(246,245,245,.9); --text-2:rgba(246,245,245,.6); --text-3:rgba(246,245,245,.4);
+  --content-1:rgba(246,245,245,.9); --on-content-1:#262626; --divider:rgba(246,245,245,.08); --pressed:rgba(246,245,245,.08);
+  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg-default:#3d3c3c; --surface:#262626; --surface-l1:#3d3c3c; --surface-l2:#434242;
+  --text-1:rgba(246,245,245,.9); --text-2:rgba(246,245,245,.6); --text-3:rgba(246,245,245,.4);
+  --content-1:rgba(246,245,245,.9); --on-content-1:#262626; --divider:rgba(246,245,245,.08); --pressed:rgba(246,245,245,.08);
+  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111; color-scheme:dark}
 [hidden]{display:none!important}
-html,body{background:var(--shell-bg);color:var(--shell-fg)}
-body{font-family:var(--f-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
-.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
-header{display:flex;flex-direction:column;gap:8px}
-h1{font-size:clamp(22px,3.2vw,30px);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
-.lede{margin:0;color:var(--shell-muted);font-size:15px;line-height:1.55;max-width:70ch}
-.lede a{color:var(--shell-accent)}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
-.tab{font:600 14px/1.2 var(--f-ui);text-align:left;border:1px solid var(--shell-line);background:var(--shell-card);color:var(--shell-fg);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0}
-.tab small{font-weight:400;font-size:12.5px;color:var(--shell-muted);line-height:1.4}
-.tab[aria-selected="true"]{border-color:var(--shell-accent);box-shadow:inset 0 0 0 1px var(--shell-accent);background:var(--shell-chip)}
-.tab:focus-visible,.btn:focus-visible,.step:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
-.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;background:var(--shell-card);border:1px solid var(--shell-line);border-radius:16px;padding:14px 16px;min-height:44px}
-.btn{font:600 14px/1 var(--f-ui);border:1px solid var(--shell-line);background:transparent;color:var(--shell-fg);border-radius:999px;padding:10px 16px;cursor:pointer}
-.btn:hover{border-color:var(--shell-accent)}
-.steps{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
-.step{font:500 12px/1 var(--f-ui);color:var(--shell-muted);border:1px solid var(--shell-line);border-radius:999px;padding:7px 10px;background:transparent;cursor:pointer}
-.step.on{color:var(--shell-fg);border-color:var(--shell-accent);background:var(--shell-chip)}
-.note{color:var(--shell-muted);font-size:14px;flex:1;min-width:0}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+html,body{background:var(--bg-default);color:var(--text-1)}
+body{font-family:var(--f-ui);margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+header{display:flex;flex-direction:column;gap:12px}
+/* Display_Sm 24/31 · Paragraph_Md 14/21 */
+h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--text-2);font-size:14px;line-height:21px;font-weight:400;max-width:72ch}
+.lede a{color:var(--text-1);font-weight:600;text-decoration:underline;text-underline-offset:2px} /* Text/Link = Primary, Body_Link underline */
+/* Android Segmented Control: round track, 4px padding, 32px active tile in Content/Primary, unselected Text/Passive */
+.vsel{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.tabs{display:inline-grid;grid-template-columns:1fr 1fr;padding:4px;gap:0;background:var(--surface);border-radius:999px;max-width:100%}
+.tab{font:600 14px/18px var(--f-ui);border:0;background:transparent;color:var(--text-3);border-radius:99px;height:32px;padding:0 20px;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s}
+.tab[aria-selected="true"]{background:var(--content-1);color:var(--on-content-1)}
+.vdesc{margin:0;color:var(--text-2);font-size:14px;line-height:18px}  /* Body_Lg */
+.tab:focus-visible,.btn:focus-visible,.step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Card: Surface/Default, Radius md 16, 16px component padding */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;background:var(--surface);border-radius:16px;padding:16px;min-height:42px}
+/* Pill Button · Large · Secondary: 42px, 20px side padding, Title_Sm label, Surface/Light 1 → Content/Pressed */
+.btn{font:600 14px/18px var(--f-ui);border:0;background:var(--surface-l1);color:var(--text-1);border-radius:999px;height:42px;min-width:80px;padding:0 20px;cursor:pointer}
+.btn:active{background:var(--pressed)}
+/* Chips · Secondary: white, 1.5px Divider outline, Title_Sm, 8/16 padding; Selected = Content/Primary fill, Pure Bright text */
+.steps{display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.step{font:600 14px/18px var(--f-ui);color:var(--content-1);border:1.5px solid var(--divider);border-radius:999px;padding:6.5px 14.5px;background:var(--surface);cursor:pointer}
+.step:active{background:var(--surface-l1)}
+.step.on{background:var(--content-1);color:var(--on-content-1);border-color:transparent}
+.note{color:var(--text-2);font-size:14px;line-height:18px;flex:1;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
 @media (max-width:760px){.grid{grid-template-columns:1fr}}
-.col{display:flex;flex-direction:column;gap:14px;min-width:0;align-items:center}
-.label{display:flex;align-items:baseline;gap:10px;justify-content:center}
-.tag{font:700 12px/1 var(--f-ui);letter-spacing:.06em;color:var(--shell-accent);background:var(--shell-chip);padding:6px 9px;border-radius:999px}
-.label h2{margin:0;font-size:17px;font-weight:600}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0;align-items:center}
+.label{display:flex;align-items:center;gap:8px;justify-content:center}
+/* Version tag: Title_Sm on Vee/Pale with Text/Accent Variant */
+.tag{font:600 14px/18px var(--f-ui);color:var(--accent-text);background:var(--accent-pale);padding:4px 12px;border-radius:999px}
+.label h2{margin:0;font-size:17px;line-height:22px;font-weight:600}  /* Title_Md */
 .stage{width:100%;max-width:360px;aspect-ratio:360/800;position:relative}
-.device{position:absolute;inset:0;border-radius:24px;box-shadow:0 0 0 8px #1E2421,0 18px 40px rgba(0,0,0,.18);overflow:hidden;background:#F6F5F5}
+.device{position:absolute;inset:0;border-radius:24px;box-shadow:0 0 0 8px var(--device),0 16px 32px rgba(38,38,38,.16);overflow:hidden;background:#f6f5f5}
 .screen{width:360px;height:800px;transform-origin:0 0;position:absolute;left:0;top:0;overflow:hidden}
 .layer{position:absolute;inset:0;background-size:360px 800px;background-repeat:no-repeat}
 /* ---------- V1: everything inside the phone screen (Figma x88 y102 w184 h380) ---------- */
@@ -92,9 +124,11 @@ h1{font-size:clamp(22px,3.2vw,30px);font-weight:700;margin:0;text-wrap:balance;l
 .v2 .bl{left:12px} .v2 .al{right:12px}
 .v2 input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;touch-action:none}
 .v2 .ui:focus-within .knob{box-shadow:0 0 0 3px var(--ds-accent),0 2px 8px rgba(0,0,0,.25)}
-.notes{align-self:stretch;background:var(--shell-card);border:1px solid var(--shell-line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.5;color:var(--shell-muted)}
-.notes b{color:var(--shell-fg);font-weight:600}
-footer{font-size:12.5px;line-height:1.6;color:var(--shell-muted);border-top:1px solid var(--shell-line);padding-top:16px;max-width:82ch}
+/* Notes card: Surface/Default, Radius md 16, padding 16, Body_Lg */
+.notes{align-self:stretch;background:var(--surface);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:18px;color:var(--text-2)}
+.notes b{color:var(--text-1);font-weight:600}
+/* Footer: Divider hairline + Paragraph_Md in Text/Secondary */
+footer{font-size:14px;line-height:21px;color:var(--text-2);border-top:1px solid var(--divider);padding-top:20px;max-width:82ch}
 @media (prefers-reduced-motion:reduce){.v1 *{animation:none!important;transition:none!important}}
 </style>
 
@@ -104,15 +138,18 @@ footer{font-size:12.5px;line-height:1.6;color:var(--shell-muted);border-top:1px 
     <p class="lede">Proposal UI for the Android onboarding first screen; one version will be chosen for the Stage 1 test. The phone screens are 2× exports from Figma. Inside each version, C1 and C2 differ only in the message and call source. Figma source: <a href="https://www.figma.com/design/KJk0ZUUonXGTAs1XWb8Okf/01_Onboarding?node-id=14455-6474" target="_blank" rel="noopener">01_Onboarding · V1 / V2 × C1 / C2</a>.</p>
   </header>
 
-  <div class="tabs" role="tablist" aria-label="Presentation version">
-    <button class="tab" role="tab" aria-selected="true" data-v="v1">V1 · Simulated call (story)<small>Rings, the Whoscall dialog shows “Scammer”; drag the handle to Decline or Answer (slides to Decline if left alone).</small></button>
-    <button class="tab" role="tab" aria-selected="false" data-v="v2">V2 · Before / After (slider)<small>Drag the slider freely; drag toward After and the background glows. It wiggles first, then slides to After by itself if left alone.</small></button>
+  <div class="vsel">
+    <div class="tabs" role="tablist" aria-label="Presentation version">
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="Rings, then the Whoscall dialog shows “Scammer”. Drag the handle to Decline or Answer; left alone, it slides to Decline.">V1 · Simulated call</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="v2" data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
+    </div>
+    <p class="vdesc" id="vdesc"></p>
   </div>
 
   <div class="bar" role="group" aria-label="Animation controls">
     <button class="btn" id="play" aria-pressed="true">Pause</button>
     <div class="steps" id="steps"></div>
-    <span class="note" id="v2note" hidden>The handle wiggles on load to hint that it can be dragged; drag it freely on either phone. Left alone, it then slides to After by itself and returns to the middle.</span>
+    <span class="note" id="v2note" hidden>Each phone runs on its own. Restart plays the wiggle and auto demo again.</span>
     <button class="btn" id="replay" hidden>Restart demo</button>
   </div>
 
@@ -237,7 +274,7 @@ play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'
 replay.addEventListener('click',restartDemo);
 function setVer(v){
   ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
-  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.v===v)));
+  document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===v; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
   const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=!isV2;
   screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit();
   if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(runStory); }
