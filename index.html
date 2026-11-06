@@ -53,11 +53,11 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .lede{margin:0;color:var(--text-2);font-size:14px;line-height:21px;font-weight:400;max-width:72ch}
 .lede a{color:var(--text-1);font-weight:600;text-decoration:underline;text-underline-offset:2px} /* Text/Link = Primary, Body_Link underline */
 /* Android Segmented Control: round track, 4px padding, 32px active tile in Content/Primary, unselected Text/Passive */
-.vsel{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.vsel{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
 .tabs{display:inline-grid;grid-template-columns:1fr 1fr;padding:4px;gap:0;background:var(--surface);border-radius:999px;max-width:100%}
 .tab{font:600 14px/18px var(--f-ui);border:0;background:transparent;color:var(--text-3);border-radius:99px;height:32px;padding:0 20px;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s}
 .tab[aria-selected="true"]{background:var(--content-1);color:var(--on-content-1)}
-.vdesc{margin:0;color:var(--text-2);font-size:14px;line-height:18px}  /* Body_Lg */
+.vdesc{margin:0;color:var(--text-2);font-size:14px;line-height:18px;max-width:64ch;text-wrap:balance}  /* Body_Lg */
 .tab:focus-visible,.btn:focus-visible,.step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Card: Surface/Default, Radius md 16, 16px component padding */
 .bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;background:var(--surface);border-radius:16px;padding:16px;min-height:42px}
@@ -131,10 +131,13 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .notes{align-self:stretch;background:var(--surface);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:18px;color:var(--text-2)}
 .notes b{color:var(--text-1);font-weight:600}
 /* Header action: Pill Button · Large · Primary + Body_Lg caption */
-.hact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+/* Mobile preview button sits left of the controls card; stacks above it on narrow screens */
+.ctlrow{display:flex;align-items:center;gap:16px}
+.ctlrow .bar{flex:1;min-width:0}
+.ctlrow #pvopen{flex:none}
+@media (max-width:600px){.ctlrow{flex-direction:column;align-items:stretch;gap:12px}.ctlrow #pvopen{align-self:flex-start}}
 .btn.primary{background:var(--primary-bg);color:var(--on-primary)}
 .btn.primary:active{background:var(--primary-pressed)}
-.hcap{font-size:14px;line-height:18px;color:var(--text-2)}
 /* ---------- Mobile preview: one Figma frame, scaled to fit the viewport (contain), letterboxed in the frame's own edge colour ---------- */
 html.pvon,html.pvon body{overflow:hidden}
 .pv{position:fixed;inset:0;z-index:50;background:#f6f5f5;display:flex;align-items:center;justify-content:center;overflow:hidden;
@@ -179,7 +182,6 @@ html.pvon,html.pvon body{overflow:hidden}
   <header>
     <h1>PH Get Started · value demo, 2 versions</h1>
     <p class="lede">Proposal UI for the Android onboarding first screen; Figma source: <a href="https://www.figma.com/design/KJk0ZUUonXGTAs1XWb8Okf/01_Onboarding?node-id=14455-6474" target="_blank" rel="noopener">01_Onboarding · V1 / V2 × C1 / C2</a>.</p>
-    <div class="hact"><button class="btn primary" id="pvopen" type="button">Mobile preview</button><span class="hcap">Full-screen phone view at real size. Long-press to switch V1 / V2 and C1 / C2.</span></div>
   </header>
 
   <div class="vsel">
@@ -190,11 +192,14 @@ html.pvon,html.pvon body{overflow:hidden}
     <p class="vdesc" id="vdesc"></p>
   </div>
 
+  <div class="ctlrow">
+  <button class="btn primary" id="pvopen" type="button">Mobile preview</button>
   <div class="bar" role="group" aria-label="Animation controls">
     <button class="btn" id="play" aria-pressed="true">Pause</button>
     <div class="steps" id="steps"></div>
     <span class="note" id="v2note" hidden>Each phone runs on its own. Restart plays the wiggle and auto demo again.</span>
     <button class="btn" id="replay" hidden>Restart demo</button>
+  </div>
   </div>
 
   <div class="grid">
