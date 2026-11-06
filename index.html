@@ -128,7 +128,6 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .notes{align-self:stretch;background:var(--surface);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:18px;color:var(--text-2)}
 .notes b{color:var(--text-1);font-weight:600}
 /* Footer: Divider hairline + Paragraph_Md in Text/Secondary */
-footer{font-size:14px;line-height:21px;color:var(--text-2);border-top:1px solid var(--divider);padding-top:20px;max-width:82ch}
 @media (prefers-reduced-motion:reduce){.v1 *{animation:none!important;transition:none!important}}
 </style>
 
@@ -166,7 +165,6 @@ footer{font-size:14px;line-height:21px;color:var(--text-2);border-top:1px solid 
     </section>
   </div>
 
-  <footer>All phone pixels are 2× PNG exports of the Figma frames (720×1600, shown at 360×800), including the swipe handle with the Whoscall phone icon. V1 motion moves and fades cropped parts of those exports; the ringing halo and the red / green flood after a swipe are drawn by this page. Drag the handle left past the Decline threshold for “You avoided a high-risk call!”, or right to Answer for “Now you know who’s calling you!”; a short drag springs back. Each phone runs on its own. In V2 only the slider line, handle and Before/After labels are drawn by this page. Numbers and labels are examples, not a real lookup.</footer>
 </div>
 
 <script>
@@ -289,4 +287,5 @@ new Image().src=`${A}v1_handle.png${VER}`;
 ['c1','c2'].forEach(c=>{['b1','b2','b3','b4d','b4a'].forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 setVer(fromHash());
 </script>
+
 </html>
