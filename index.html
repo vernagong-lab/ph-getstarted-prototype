@@ -168,18 +168,34 @@ html.pvon,html.pvon body{overflow:hidden}
 .scrim{position:absolute;inset:0;background:rgba(38,38,38,.6);opacity:0;transition:opacity .25s}
 .pv.sheeton .scrim{opacity:1}
 .sheet{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:480px;box-sizing:border-box;background:#fff;border-radius:20px 20px 0 0;
-  padding:36px 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 20px rgba(38,38,38,.04),0 -2px 4px rgba(38,38,38,.04);
-  transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:4px}
+  padding:20px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 20px rgba(38,38,38,.04),0 -2px 4px rgba(38,38,38,.04);
+  transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:16px;font-family:var(--f-ui)}
 .pv.sheeton .sheet{transform:none}
-.act{display:flex;align-items:center;gap:8px;width:100%;height:44px;padding:0 8px;border:0;background:transparent;border-radius:12px;
-  font:400 14px/1.3 var(--f-ui);color:rgba(38,38,38,.85);text-align:left;cursor:pointer}
+/* Header: Android Sheet title 20 / 600 / 130%, centred; no grabber (this sheet does not expand or collapse) */
+.sh-title{margin:0;font-size:20px;line-height:1.3;font-weight:600;color:rgba(38,38,38,.85);text-align:center}
+/* Version: Chips · Secondary (white, 1.5px Divider outline; Selected = Content/Primary fill, Pure Bright text), Title_Sm, 8/16 padding */
+.sh-chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.chip{font:600 14px/1.3 var(--f-ui);color:rgba(38,38,38,.85);background:#fff;border:1.5px solid rgba(38,38,38,.08);border-radius:999px;padding:6.5px 14.5px;cursor:pointer;white-space:nowrap}
+.chip:active{background:#f6f5f5}
+.chip[aria-checked="true"]{background:rgba(38,38,38,.85);color:#fff;border-color:transparent}
+.chip:focus-visible,.act:focus-visible,.tbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Message rows: Action Sheet item (left icon 20 · label · right icon), extended with a Body_Md secondary line; Pressed = Content/Pressed, radius 12.
+   Selected = 1.5px Core/Accent outline + Accent Variant check (tick, Android icon font) */
+.sh-list{display:flex;flex-direction:column;gap:4px}
+.act{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;box-sizing:border-box;padding:8px 12px;border:1.5px solid transparent;background:transparent;border-radius:12px;
+  text-align:left;cursor:pointer;color:rgba(38,38,38,.85)}
 .act:active{background:rgba(38,38,38,.08)}
-.act:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.act .lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.act .lbl b{font-weight:600}
-.act svg{width:20px;height:20px;flex:none;color:#078e40;visibility:hidden}
-.act[aria-checked="true"] svg{visibility:visible}
-.sdiv{height:1px;background:rgba(38,38,38,.08);margin:4px 8px}
+.act[aria-checked="true"]{border-color:#0cd25f}
+.act .wi{color:rgba(38,38,38,.85)}
+.act .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.act .t1{font:600 14px/1.3 var(--f-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .t2{font:400 12px/16px var(--f-ui);color:rgba(38,38,38,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .chk{color:#078e40;visibility:hidden}
+.act[aria-checked="true"] .chk{visibility:visible}
+.sdiv{height:1px;background:rgba(38,38,38,.08);margin:0 12px}
+/* Exit: Text Button · Large · Primary (Core/Primary content, Pressed fill Content/Pressed) */
+.tbtn{align-self:center;font:600 14px/1.3 var(--f-ui);color:#434242;background:transparent;border:0;border-radius:999px;height:42px;padding:0 20px;cursor:pointer}
+.tbtn:active{background:rgba(38,38,38,.08);color:#262626}
 @media (prefers-reduced-motion:reduce){.sheet,.scrim,.toast{transition:none}}
 @media (prefers-reduced-motion:reduce){.v1 *{animation:none!important;transition:none!important}}
 </style>
@@ -229,13 +245,18 @@ html.pvon,html.pvon body{overflow:hidden}
   <div class="toast" id="pvtoast" role="status" aria-live="polite">Long-press anywhere to switch version</div>
   <div class="sw">
     <div class="scrim" id="scrim"></div>
-    <div class="sheet" role="menu" aria-label="Switch preview">
-      <button class="act" role="menuitemradio" data-v="v1" data-c="c1"><span class="lbl"><b>V1 · C1</b>  Caller ID</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button class="act" role="menuitemradio" data-v="v1" data-c="c2"><span class="lbl"><b>V1 · C2</b>  Phone + Viber + WhatsApp</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button class="act" role="menuitemradio" data-v="v2" data-c="c1"><span class="lbl"><b>V2 · C1</b>  Caller ID</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button class="act" role="menuitemradio" data-v="v2" data-c="c2"><span class="lbl"><b>V2 · C2</b>  Phone + Viber + WhatsApp</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="sheet" role="dialog" aria-label="Switch prototype">
+      <h2 class="sh-title">Switch prototype</h2>
+      <div class="sh-chips" role="radiogroup" aria-label="Version">
+        <button class="chip" type="button" role="radio" data-v="v1">V1 · Simulated call</button>
+        <button class="chip" type="button" role="radio" data-v="v2">V2 · Before / After</button>
+      </div>
+      <div class="sh-list" role="radiogroup" aria-label="Message">
+        <button class="act" type="button" role="radio" data-c="c1"><span class="wi" aria-hidden="true">&#xe905;</span><span class="txt"><span class="t1">C1 · Caller ID</span><span class="t2">Example: a phone call</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
+        <button class="act" type="button" role="radio" data-c="c2"><span class="wi" aria-hidden="true">&#xe906;</span><span class="txt"><span class="t1">C2 · Phone + Viber + WhatsApp</span><span class="t2">Example: a Viber call</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
+      </div>
       <div class="sdiv" role="separator"></div>
-      <button class="act" role="menuitem" id="pvexit"><span class="lbl">Exit preview</span></button>
+      <button class="tbtn" type="button" id="pvexit">Exit preview</button>
     </div>
   </div>
 </div>
@@ -359,7 +380,7 @@ new ResizeObserver(fit).observe(document.querySelector('.grid'));
    Hash: #v1 / #v2 for the page, #pv/<v>/<c> while previewing (shareable; opens straight into the preview).
    Long-press (500 ms, <10 px movement) anywhere opens the Android Action Sheet to switch V/C or exit. */
 const pv=document.getElementById('pv'), pvbox=document.getElementById('pvbox'), pvs=document.getElementById('pvscreen'), pvtoast=document.getElementById('pvtoast');
-const acts=[...pv.querySelectorAll('.act[data-v]')];
+const chips=[...pv.querySelectorAll('.chip')], acts=[...pv.querySelectorAll('.act[data-c]')];
 let pvOn=false, pvPushed=false, suppressHash=false, sheetOn=false, scrimArmed=false, lp=null, toastT=0;
 function pvFit(){ if(!pvOn) return; const s=Math.min(pv.clientWidth/360,pv.clientHeight/800);
   pvbox.style.width=360*s+'px'; pvbox.style.height=800*s+'px'; pvs.style.transform='scale('+s+')'; }
@@ -380,13 +401,16 @@ function closePv(fromHistory){ if(!pvOn) return; closeSheet(); pvOn=false; pv.hi
   // Never call history.back() here: inside an embedding frame (e.g. the claude.ai viewer) it could step the parent page back.
   pvPushed=false; syncHash(false);
   document.getElementById('pvopen').focus({preventScroll:true}); }
-function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton');
-  pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=true; });
-  acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.v===ver&&a.dataset.c===pvs.dataset.c)));
+function markSheet(){ chips.forEach(x=>x.setAttribute('aria-checked',String(x.dataset.v===ver)));
+  acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.c===pvs.dataset.c))); }
+const lockInputs=on=>pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=on; });
+function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton'); lockInputs(true); markSheet();
   (acts.find(a=>a.getAttribute('aria-checked')==='true')||acts[0]).focus({preventScroll:true}); }
-function closeSheet(){ if(!sheetOn) return; sheetOn=false; pv.classList.remove('sheeton'); pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=false; }); }
-acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); const same=a.dataset.v===ver&&a.dataset.c===pvs.dataset.c;
-  openPv(a.dataset.v,a.dataset.c,{push:false}); showToast((same?'Restarted · ':'')+a.querySelector('b').textContent); }));
+function closeSheet(){ if(!sheetOn) return; sheetOn=false; pv.classList.remove('sheeton'); lockInputs(false); }
+// Chip: switch the version right away behind the sheet (sheet stays open). Row: switch the message and close.
+chips.forEach(x=>x.addEventListener('click',()=>{ if(x.dataset.v!==ver){ openPv(x.dataset.v,pvs.dataset.c,{push:false}); lockInputs(true); } markSheet(); }));
+acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); openPv(ver,a.dataset.c,{push:false});
+  showToast(ver.toUpperCase()+' · '+a.dataset.c.toUpperCase()); }));
 document.getElementById('pvexit').addEventListener('click',()=>closePv(false));
 document.getElementById('pvopen').addEventListener('click',()=>openPv(ver,'c1'));
 const scrim=document.getElementById('scrim');
