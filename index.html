@@ -144,6 +144,15 @@ html.pvon,html.pvon body{overflow:hidden}
 .toast{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);background:#262626;color:#fff;font:400 14px/18px var(--f-ui);
   padding:12px 20px;border-radius:999px;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+/* Exit control for mouse / trackpad viewers only (touch keeps the clean full-screen view: long-press menu or system back).
+   Circle Button · Secondary look: 40px, white surface, Primary content icon, sits in the letterbox at the top-right. */
+.pvclose{display:none;position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;padding:0;background:#fff;color:rgba(38,38,38,.85);
+  box-shadow:0 2px 8px rgba(38,38,38,.16);cursor:pointer;place-items:center;z-index:1}
+.pvclose svg{width:24px;height:24px}
+.pvclose:hover{background:#e7e6e6} .pvclose:active{background:#d1d0d0}
+.pvclose:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.pvclose{display:grid}}
+.pv.sheeton .pvclose{visibility:hidden}
 /* Action Sheet (Android): Background/Mask scrim, white body, 20px top corners, 36px top region, 16/24 padding, 44px rows, 4px gap, Pressed row radius 12 */
 .sw{position:absolute;inset:0;visibility:hidden;transition:visibility 0s .25s}
 .pv.sheeton .sw{visibility:visible;transition-delay:0s}
@@ -205,6 +214,7 @@ html.pvon,html.pvon body{overflow:hidden}
 
 <div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-label="Mobile preview">
   <div class="pvbox" id="pvbox"><div class="screen" data-c="c1" id="pvscreen"></div></div>
+  <button class="pvclose" id="pvclose" type="button" aria-label="Exit preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   <div class="toast" id="pvtoast" role="status" aria-live="polite">Long-press anywhere to switch version</div>
   <div class="sw">
     <div class="scrim" id="scrim"></div>
@@ -345,16 +355,19 @@ function pvFit(){ if(!pvOn) return; const s=Math.min(pv.clientWidth/360,pv.clien
 new ResizeObserver(pvFit).observe(pv);
 function syncHash(push){ const h=pvOn?`#pv/${ver}/${pvs.dataset.c}`:'#'+ver;
   try{ if(location.hash!==h) history[push?'pushState':'replaceState'](null,'',h); }catch(e){} }
+const FINE=matchMedia('(hover:hover) and (pointer:fine)').matches;
+document.getElementById('pvclose').addEventListener('click',()=>closePv(false));
 function showToast(msg){ pvtoast.textContent=msg; pvtoast.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>pvtoast.classList.remove('show'),2800); }
 function openPv(v,c,{push=true,fs=true}={}){ const was=pvOn; pvs.dataset.c=c; pvOn=true; pv.hidden=false; document.documentElement.classList.add('pvon');
   const doPush=push&&!was; if(doPush) pvPushed=true;
   setVer(v,doPush);
-  if(!was){ showToast('Long-press anywhere to switch version');
+  if(!was){ showToast(FINE?'Long-press to switch version · Esc or ✕ to exit':'Long-press anywhere to switch version');
     if(fs&&pv.requestFullscreen&&matchMedia('(pointer:coarse)').matches) pv.requestFullscreen({navigationUI:'hide'}).catch(()=>{}); } }
 function closePv(fromHistory){ if(!pvOn) return; closeSheet(); pvOn=false; pv.hidden=true; document.documentElement.classList.remove('pvon');
   pvtoast.classList.remove('show');
   if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
-  if(pvPushed&&!fromHistory){ pvPushed=false; suppressHash=true; history.back(); } else { pvPushed=false; syncHash(false); }
+  // Never call history.back() here: inside an embedding frame (e.g. the claude.ai viewer) it could step the parent page back.
+  pvPushed=false; syncHash(false);
   document.getElementById('pvopen').focus({preventScroll:true}); }
 function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton');
   pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=true; });
