@@ -27,6 +27,7 @@
   --accent-text:#078e40;           /* Colors/Text/Accent Variant */
   --accent-pale:#edfff3;           /* Colors/Vee/Pale */
   --device:#262626;                /* Colors/Content/Pure Dark */
+  --primary-bg:#434242; --primary-pressed:#262626; --on-primary:#ffffff;  /* Pill Button · Primary: Core/Primary → Pure Dark */
   --ds-text1:rgba(38,38,38,.85); --ds-accent:#0cd25f; --ds-neg:#ff2e4d;
   --f-ui:"Roboto","Noto Sans TC",system-ui,Arial,sans-serif;
 }
@@ -34,12 +35,14 @@
   --bg-default:#3d3c3c; --surface:#262626; --surface-l1:#3d3c3c; --surface-l2:#434242;
   --text-1:rgba(246,245,245,.9); --text-2:rgba(246,245,245,.6); --text-3:rgba(246,245,245,.4);
   --content-1:rgba(246,245,245,.9); --on-content-1:#262626; --divider:rgba(246,245,245,.08); --pressed:rgba(246,245,245,.08);
-  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111; color-scheme:dark}}
+  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111;
+  --primary-bg:rgba(246,245,245,.9); --primary-pressed:rgba(246,245,245,.75); --on-primary:#262626; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg-default:#3d3c3c; --surface:#262626; --surface-l1:#3d3c3c; --surface-l2:#434242;
   --text-1:rgba(246,245,245,.9); --text-2:rgba(246,245,245,.6); --text-3:rgba(246,245,245,.4);
   --content-1:rgba(246,245,245,.9); --on-content-1:#262626; --divider:rgba(246,245,245,.08); --pressed:rgba(246,245,245,.08);
-  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111; color-scheme:dark}
+  --accent-text:#d8ffe8; --accent-pale:rgba(12,210,95,.16); --device:#111111;
+  --primary-bg:rgba(246,245,245,.9); --primary-pressed:rgba(246,245,245,.75); --on-primary:#262626; color-scheme:dark}
 [hidden]{display:none!important}
 html,body{background:var(--bg-default);color:var(--text-1)}
 body{font-family:var(--f-ui);margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 48px}
@@ -127,7 +130,39 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 /* Notes card: Surface/Default, Radius md 16, padding 16, Body_Lg */
 .notes{align-self:stretch;background:var(--surface);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:18px;color:var(--text-2)}
 .notes b{color:var(--text-1);font-weight:600}
-/* Footer: Divider hairline + Paragraph_Md in Text/Secondary */
+/* Header action: Pill Button · Large · Primary + Body_Lg caption */
+.hact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.btn.primary{background:var(--primary-bg);color:var(--on-primary)}
+.btn.primary:active{background:var(--primary-pressed)}
+.hcap{font-size:14px;line-height:18px;color:var(--text-2)}
+/* ---------- Mobile preview: one Figma frame, scaled to fit the viewport (contain), letterboxed in the frame's own edge colour ---------- */
+html.pvon,html.pvon body{overflow:hidden}
+.pv{position:fixed;inset:0;z-index:50;background:#f6f5f5;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:contain}
+.pvbox{position:relative;overflow:hidden;flex:none;background:#f6f5f5}
+/* Toast: Content/Pure Dark pill, Body_Lg */
+.toast{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);background:#262626;color:#fff;font:400 14px/18px var(--f-ui);
+  padding:12px 20px;border-radius:999px;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* Action Sheet (Android): Background/Mask scrim, white body, 20px top corners, 36px top region, 16/24 padding, 44px rows, 4px gap, Pressed row radius 12 */
+.sw{position:absolute;inset:0;visibility:hidden;transition:visibility 0s .25s}
+.pv.sheeton .sw{visibility:visible;transition-delay:0s}
+.scrim{position:absolute;inset:0;background:rgba(38,38,38,.6);opacity:0;transition:opacity .25s}
+.pv.sheeton .scrim{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:480px;box-sizing:border-box;background:#fff;border-radius:20px 20px 0 0;
+  padding:36px 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 20px rgba(38,38,38,.04),0 -2px 4px rgba(38,38,38,.04);
+  transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:4px}
+.pv.sheeton .sheet{transform:none}
+.act{display:flex;align-items:center;gap:8px;width:100%;height:44px;padding:0 8px;border:0;background:transparent;border-radius:12px;
+  font:400 14px/1.3 var(--f-ui);color:rgba(38,38,38,.85);text-align:left;cursor:pointer}
+.act:active{background:rgba(38,38,38,.08)}
+.act:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.act .lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .lbl b{font-weight:600}
+.act svg{width:20px;height:20px;flex:none;color:#078e40;visibility:hidden}
+.act[aria-checked="true"] svg{visibility:visible}
+.sdiv{height:1px;background:rgba(38,38,38,.08);margin:4px 8px}
+@media (prefers-reduced-motion:reduce){.sheet,.scrim,.toast{transition:none}}
 @media (prefers-reduced-motion:reduce){.v1 *{animation:none!important;transition:none!important}}
 </style>
 
@@ -135,6 +170,7 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
   <header>
     <h1>PH Get Started · value demo, 2 versions</h1>
     <p class="lede">Proposal UI for the Android onboarding first screen; one version will be chosen for the Stage 1 test. The phone screens are 2× exports from Figma. Inside each version, C1 and C2 differ only in the message and call source. Figma source: <a href="https://www.figma.com/design/KJk0ZUUonXGTAs1XWb8Okf/01_Onboarding?node-id=14455-6474" target="_blank" rel="noopener">01_Onboarding · V1 / V2 × C1 / C2</a>.</p>
+    <div class="hact"><button class="btn primary" id="pvopen" type="button">Mobile preview</button><span class="hcap">Full-screen phone view at real size. Long-press to switch V1 / V2 and C1 / C2.</span></div>
   </header>
 
   <div class="vsel">
@@ -165,6 +201,22 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
     </section>
   </div>
 
+</div>
+
+<div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-label="Mobile preview">
+  <div class="pvbox" id="pvbox"><div class="screen" data-c="c1" id="pvscreen"></div></div>
+  <div class="toast" id="pvtoast" role="status" aria-live="polite">Long-press anywhere to switch version</div>
+  <div class="sw">
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" role="menu" aria-label="Switch preview">
+      <button class="act" role="menuitemradio" data-v="v1" data-c="c1"><span class="lbl"><b>V1 · C1</b>  Caller ID</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="act" role="menuitemradio" data-v="v1" data-c="c2"><span class="lbl"><b>V1 · C2</b>  Phone + Viber + WhatsApp</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="act" role="menuitemradio" data-v="v2" data-c="c1"><span class="lbl"><b>V2 · C1</b>  Caller ID</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="act" role="menuitemradio" data-v="v2" data-c="c2"><span class="lbl"><b>V2 · C2</b>  Phone + Viber + WhatsApp</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="sdiv" role="separator"></div>
+      <button class="act" role="menuitem" id="pvexit"><span class="lbl">Exit preview</span></button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -270,22 +322,74 @@ const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.c
 const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
 replay.addEventListener('click',restartDemo);
-function setVer(v){
+function setVer(v,push){
   ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
   document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===v; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
   const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=!isV2;
-  screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit();
+  screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit(); pvFit();
   if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(runStory); }
-  try{ if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);}catch(e){}
+  syncHash(push);
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setVer(t.dataset.v)));
-function fromHash(){return (location.hash||'').slice(1)==='v2'?'v2':'v1';}
-window.addEventListener('hashchange',()=>{const v=fromHash(); if(v!==ver) setVer(v);});
 function fit(){document.querySelectorAll('.stage').forEach(st=>{st.querySelector('.screen').style.transform='scale('+(st.clientWidth/360)+')';});}
 new ResizeObserver(fit).observe(document.querySelector('.grid'));
+/* ---------- Mobile preview ----------
+   The third .screen lives in a fixed overlay and shares the same renderers and timelines as the two phones on the page.
+   Hash: #v1 / #v2 for the page, #pv/<v>/<c> while previewing (shareable; opens straight into the preview).
+   Long-press (500 ms, <10 px movement) anywhere opens the Android Action Sheet to switch V/C or exit. */
+const pv=document.getElementById('pv'), pvbox=document.getElementById('pvbox'), pvs=document.getElementById('pvscreen'), pvtoast=document.getElementById('pvtoast');
+const acts=[...pv.querySelectorAll('.act[data-v]')];
+let pvOn=false, pvPushed=false, suppressHash=false, sheetOn=false, scrimArmed=false, lp=null, toastT=0;
+function pvFit(){ if(!pvOn) return; const s=Math.min(pv.clientWidth/360,pv.clientHeight/800);
+  pvbox.style.width=360*s+'px'; pvbox.style.height=800*s+'px'; pvs.style.transform='scale('+s+')'; }
+new ResizeObserver(pvFit).observe(pv);
+function syncHash(push){ const h=pvOn?`#pv/${ver}/${pvs.dataset.c}`:'#'+ver;
+  try{ if(location.hash!==h) history[push?'pushState':'replaceState'](null,'',h); }catch(e){} }
+function showToast(msg){ pvtoast.textContent=msg; pvtoast.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>pvtoast.classList.remove('show'),2800); }
+function openPv(v,c,{push=true,fs=true}={}){ const was=pvOn; pvs.dataset.c=c; pvOn=true; pv.hidden=false; document.documentElement.classList.add('pvon');
+  const doPush=push&&!was; if(doPush) pvPushed=true;
+  setVer(v,doPush);
+  if(!was){ showToast('Long-press anywhere to switch version');
+    if(fs&&pv.requestFullscreen&&matchMedia('(pointer:coarse)').matches) pv.requestFullscreen({navigationUI:'hide'}).catch(()=>{}); } }
+function closePv(fromHistory){ if(!pvOn) return; closeSheet(); pvOn=false; pv.hidden=true; document.documentElement.classList.remove('pvon');
+  pvtoast.classList.remove('show');
+  if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+  if(pvPushed&&!fromHistory){ pvPushed=false; suppressHash=true; history.back(); } else { pvPushed=false; syncHash(false); }
+  document.getElementById('pvopen').focus({preventScroll:true}); }
+function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton');
+  pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=true; });
+  acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.v===ver&&a.dataset.c===pvs.dataset.c)));
+  (acts.find(a=>a.getAttribute('aria-checked')==='true')||acts[0]).focus({preventScroll:true}); }
+function closeSheet(){ if(!sheetOn) return; sheetOn=false; pv.classList.remove('sheeton'); pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=false; }); }
+acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); const same=a.dataset.v===ver&&a.dataset.c===pvs.dataset.c;
+  openPv(a.dataset.v,a.dataset.c,{push:false}); showToast((same?'Restarted · ':'')+a.querySelector('b').textContent); }));
+document.getElementById('pvexit').addEventListener('click',()=>closePv(false));
+document.getElementById('pvopen').addEventListener('click',()=>openPv(ver,'c1'));
+const scrim=document.getElementById('scrim');
+scrim.addEventListener('pointerdown',()=>{ scrimArmed=true; });
+scrim.addEventListener('click',()=>{ if(scrimArmed) closeSheet(); });
+// Long-press detection runs in the capture phase so it also sees presses on the V1 handle and the V2 slider.
+pv.addEventListener('pointerdown',e=>{ if(sheetOn||!e.isPrimary) return; clearTimeout(lp&&lp.t);
+  lp={id:e.pointerId,x:e.clientX,y:e.clientY,fired:false}; lp.t=setTimeout(()=>{ lp.fired=true; openSheet(); if(navigator.vibrate) navigator.vibrate(12); },500); },true);
+window.addEventListener('pointermove',e=>{ if(!lp||e.pointerId!==lp.id) return;
+  if(lp.fired){ e.stopPropagation(); return; }           // after the sheet opens, the same finger no longer drags the UI underneath
+  if(Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10){ clearTimeout(lp.t); lp=null; } },true);
+const lpEnd=e=>{ if(lp&&e.pointerId===lp.id){ clearTimeout(lp.t); lp=null; } };
+window.addEventListener('pointerup',lpEnd,true); window.addEventListener('pointercancel',lpEnd,true);
+pv.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{ if(!pvOn) return; if(e.key==='Escape'){ e.preventDefault(); sheetOn?closeSheet():closePv(false); }
+  else if((e.key==='m'||e.key==='M')&&!sheetOn) openSheet(); });
+function parseHash(){ const h=location.hash||''; const m=h.match(/^#pv\/(v1|v2)\/(c1|c2)$/);
+  return m?{pv:true,v:m[1],c:m[2]}:{pv:false,v:h==='#v2'?'v2':'v1'}; }
+function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return; }
+  const r=parseHash();
+  if(r.pv){ if(!pvOn||r.v!==ver||r.c!==pvs.dataset.c) openPv(r.v,r.c,{push:false,fs:false}); return; }
+  if(pvOn){ closePv(true); return; }                      // Android back closes the preview, keeping the chosen version
+  if(r.v!==ver) setVer(r.v); }
+window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
 ['c1','c2'].forEach(c=>{['b1','b2','b3','b4d','b4a'].forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
-setVer(fromHash());
+{ const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
 
 </html>
