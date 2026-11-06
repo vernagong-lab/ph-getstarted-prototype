@@ -195,8 +195,8 @@ html.pvon,html.pvon body{overflow:hidden}
   <div class="ctlrow">
   <button class="btn primary" id="pvopen" type="button">Mobile preview</button>
   <div class="bar" role="group" aria-label="Animation controls">
-    <button class="btn" id="play" aria-pressed="true">Pause</button>
     <div class="steps" id="steps"></div>
+    <button class="btn" id="play" aria-pressed="true">Pause</button>
     <span class="note" id="v2note" hidden>Each phone runs on its own. Restart plays the wiggle and auto demo again.</span>
     <button class="btn" id="replay" hidden>Restart demo</button>
   </div>
@@ -237,7 +237,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const A='prototype_assets/';
 const VER='?v=20261106e';
-const BEATS=['Beat 1 · Ringing','Beat 2 · Searching','Beat 3 · Identified','Beat 4 · Declined','Beat 4 · Answered'];
+const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ver='v1', playing=true; const sliders=[];
