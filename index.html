@@ -82,6 +82,15 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .screen{width:360px;height:800px;transform-origin:0 0;position:absolute;left:0;top:0;overflow:hidden}
 .layer{position:absolute;inset:0;background-size:360px 800px;background-repeat:no-repeat}
 /* ---------- V1: everything inside the phone screen (Figma x88 y102 w184 h380) ---------- */
+.v1 .phw{position:absolute;inset:0;pointer-events:none}
+.v1 .phw .clip{pointer-events:auto}
+/* C1 (no Searching beat): the phone + screen layer vibrates while ringing */
+.v1.nosearch .clip{border-radius:30px}
+.v1.nosearch .pulse{top:103px}
+@keyframes ringT{0%{box-shadow:0 0 0 0 rgba(255,255,255,.28)}100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}}
+.v1.nosearch.s1 .pulse{animation-name:ringT}
+.v1.nosearch.s1 .phw{animation:buzz 1.5s linear both;transform-origin:50% 36%}
+@keyframes buzz{0%,8%,46%,54%,100%{transform:none}10%,18%,26%,34%,56%,64%,72%,80%{transform:translateX(-2px) rotate(-1.2deg)}14%,22%,30%,38%,60%,68%,76%,84%{transform:translateX(2px) rotate(1.2deg)}42%,88%{transform:none}}
 .v1 .clip{position:absolute;left:88px;top:102px;width:184px;height:380px;border-radius:20px;overflow:hidden}
 .v1 .crop{position:absolute;background-size:360px 800px;background-repeat:no-repeat;pointer-events:none}
 .v1 .cd{left:0;top:94px;width:184px;height:122px;background-position:-88px -196px}
@@ -280,7 +289,8 @@ html.pvon,html.pvon body{overflow:hidden}
 
 <script>
 const A='prototype_assets/';
-const VER='?v=20261106f';
+const VER='?v=20261112b';
+const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -290,19 +300,22 @@ const CENTER=68, MINX=16, MAXX=120, TRIG=36;           // handle left (px) insid
 const T_S2=1500, T_S3=2700, AUTO=4500;
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
-  el.innerHTML=`<div class="layer" style="${bg(c,'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>
+  const ns=NOSEARCH.has(c); // C1: new teal phone (separate layer so it can vibrate), no Searching beat, result screens baked in
+  el.innerHTML=`<div class="layer" style="${bg(c,ns?'v1_C_bg.png':'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>
+  <div class="phw">${ns?`<div class="layer" style="${bg(c,'v1_C_phone.png')}"></div>`:''}
   <div class="clip"><i class="pulse"></i>
-    <div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>
+    ${ns?'':`<div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>`}
     <div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>
     <i class="flood"></i>
-    <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}"><div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div></div>
-    <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}"><div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div></div>
+    <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
+    <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}v1_handle.png${VER})"></button>
-  </div>
+  </div></div>
   <div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${A}vee.svg${VER}" alt=""></div>`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
   setHandle(ctl,CENTER); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
-function setState(c,st,{anim=true,extra=''}={}){ c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
+function setState(c,st,{anim=true,extra=''}={}){ const ns=NOSEARCH.has(c.el.dataset.c); if(ns&&st==='s2') st='s3';
+  c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(ns?' nosearch':'')+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
 function clr(c){ c.timers.forEach(clearTimeout); c.timers=[]; }
 const at=(c,ms,fn)=>c.timers.push(setTimeout(fn,ms));
 function setHandle(c,x,mode){ const h=c.handle; h.classList.remove('spring','slide'); if(mode&&!reduce){ void h.offsetWidth; h.classList.add(mode); } h.style.left=x+'px'; c.hx=x; }
@@ -310,6 +323,7 @@ function markStep(i){ stepBtns.forEach((b,j)=>b.classList.toggle('on',j===i)); }
 function schedule(c,from){ // continue the story from a beat
   clr(c); if(!playing||ver!=='v1') return;
   if(from<=1){ setState(c,'s1',{anim:from===1}); markStep(0); at(c,T_S2,()=>schedule(c,2)); return; }
+  if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
   setState(c,'s3',{extra:'wait'}); markStep(2);
   at(c,AUTO,()=>{ setHandle(c,MINX,'slide'); at(c,560,()=>choose(c,'dec',false)); });
@@ -454,7 +468,7 @@ function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return
   if(r.v!==ver) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
-['c1','c2'].forEach(c=>{['b1','b2','b3','b4d_clean','b4a_clean'].forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg','phone','b3','b4d_clean','b4a_clean']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 { const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
 </html>
