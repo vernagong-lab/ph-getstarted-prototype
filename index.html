@@ -109,6 +109,29 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 /* Draggable handle: Figma handle export (48px) on the swipe pill; travel 16..120px inside the clip, centre 68 */
 .v1 .handle{position:absolute;top:308px;left:68px;width:48px;height:48px;border-radius:50%;background:center/48px 48px no-repeat;cursor:grab;touch-action:none;border:0;padding:0;-webkit-tap-highlight-color:transparent}
 .v1 .handle:active{cursor:grabbing}
+.v1.nosearch .handle{top:310px;width:44px;height:44px;background-size:44px 44px}
+/* C1 hint (end of intro): handle demo ±24, Decline end glows red then Answer end glows green; chevrons point both ways. Drag unlocks after the hint. */
+.v1 .eg{position:absolute;top:304px;width:80px;height:56px;opacity:0;pointer-events:none}
+.v1 .eg.l{left:12px;border-radius:28px 0 0 28px;background:linear-gradient(90deg,rgba(255,77,94,.6),rgba(255,77,94,0))}
+.v1 .eg.r{left:92px;border-radius:0 28px 28px 0;background:linear-gradient(270deg,rgba(12,210,95,.6),rgba(12,210,95,0))}
+.v1 .chev{position:absolute;top:280px;width:24px;height:16px;opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center;gap:1px}
+.v1 .chev i{display:block;width:6px;height:6px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(45deg)}
+.v1 .chev.r i{transform:rotate(-135deg)}
+.v1 .chev.l{left:30px} .v1 .chev.r{left:130px}
+.v1.nosearch.hint .handle{animation:demo 1.2s ease-in-out .6s both}
+@keyframes demo{0%,100%{transform:none}25%{transform:translateX(-24px)}50%{transform:none}75%{transform:translateX(24px)}}
+.v1.nosearch.hint .eg.l{animation:egl 1.2s ease-out .6s both} .v1.nosearch.hint .eg.r{animation:egr 1.2s ease-out .6s both}
+@keyframes egl{0%,8%{opacity:0}25%{opacity:1}45%,100%{opacity:0}}
+@keyframes egr{0%,55%{opacity:0}75%{opacity:1}95%,100%{opacity:0}}
+.v1.nosearch.hint .chev.l{animation:chl 1.2s ease-out .6s both} .v1.nosearch.hint .chev.r{animation:chr 1.2s ease-out .6s both}
+@keyframes chl{0%{opacity:0}25%{opacity:1;transform:translateX(-3px)}50%{opacity:.6;transform:none}100%{opacity:.6}}
+@keyframes chr{0%,50%{opacity:0}75%{opacity:1;transform:translateX(3px)}100%{opacity:.6;transform:none}}
+.v1.nosearch.wait .chev{opacity:.6}
+.v1.nosearch.wait .chev.l{animation:shl 1.6s ease-in-out infinite} .v1.nosearch.wait .chev.r{animation:shr 1.6s ease-in-out .8s infinite both}
+@keyframes shl{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(-2px)}}
+@keyframes shr{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(2px)}}
+.v1.nosearch.s4 .chev,.v1.nosearch.go .chev{opacity:0;animation:none}
+
 .v1 .handle.spring{transition:left .35s cubic-bezier(.3,1.5,.5,1)}
 .v1 .handle.slide{transition:left .55s cubic-bezier(.6,0,.3,1)}
 .v1 .handle:focus-visible{outline:2px solid #fff;outline-offset:2px}
@@ -289,14 +312,14 @@ html.pvon,html.pvon body{overflow:hidden}
 
 <script>
 const A='prototype_assets/';
-const VER='?v=20261112b';
+const VER='?v=20261112d';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ver='v1', playing=true; const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
-const CENTER=68, MINX=16, MAXX=120, TRIG=36;           // handle left (px) inside the clip
+const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
@@ -306,14 +329,15 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   <div class="clip"><i class="pulse"></i>
     ${ns?'':`<div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>`}
     <div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>
+    ${ns?'<i class="eg l"></i><i class="eg r"></i><span class="chev l" aria-hidden="true"><i></i><i></i></span><span class="chev r" aria-hidden="true"><i></i><i></i></span>':''}
     <i class="flood"></i>
     <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
     <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
-    <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}v1_handle.png${VER})"></button>
+    <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}${ns?'v1_c1_handle.png':'v1_handle.png'}${VER})"></button>
   </div></div>
   <div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${A}vee.svg${VER}" alt=""></div>`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
-  setHandle(ctl,CENTER); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
+  setHandle(ctl,G(ctl).C); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
 function setState(c,st,{anim=true,extra=''}={}){ const ns=NOSEARCH.has(c.el.dataset.c); if(ns&&st==='s2') st='s3';
   c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(ns?' nosearch':'')+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
 function clr(c){ c.timers.forEach(clearTimeout); c.timers=[]; }
@@ -322,16 +346,19 @@ function setHandle(c,x,mode){ const h=c.handle; h.classList.remove('spring','sli
 function markStep(i){ stepBtns.forEach((b,j)=>b.classList.toggle('on',j===i)); }
 function schedule(c,from){ // continue the story from a beat
   clr(c); if(!playing||ver!=='v1') return;
-  if(from<=1){ setState(c,'s1',{anim:from===1}); markStep(0); at(c,T_S2,()=>schedule(c,2)); return; }
+  if(from<=1){ c.locked=NOSEARCH.has(c.el.dataset.c); setState(c,'s1',{anim:from===1}); markStep(0); at(c,T_S2,()=>schedule(c,2)); return; }
   if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
+  if(NOSEARCH.has(c.el.dataset.c)){ c.locked=true; setState(c,'s3',{extra:'hint'}); markStep(2); at(c,HINT_AT+HINT_LEN,()=>waitPhase(c)); return; }
   setState(c,'s3',{extra:'wait'}); markStep(2);
-  at(c,AUTO,()=>{ setHandle(c,MINX,'slide'); at(c,560,()=>choose(c,'dec',false)); });
+  at(c,AUTO,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); });
 }
-function runStory(c){ c.busy=false; setHandle(c,CENTER); schedule(c,1); }
+function waitPhase(c){ clr(c); c.locked=false; setState(c,'s3',{extra:'wait'}); if(!playing) return;
+  at(c,AUTO_NS,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); }); }
+function runStory(c){ c.busy=false; setHandle(c,G(c).C); schedule(c,1); }
 function choose(c,which,manual){
   if(ver!=='v1'||c.busy) return; c.busy=true; clr(c); c.choice=which;
-  const fx=c.hx+24, fy=332; c.flood.className='flood '+which; c.flood.style.left=fx+'px'; c.flood.style.top=fy+'px';
+  const fx=c.hx+G(c).HW/2, fy=332; c.flood.className='flood '+which; c.flood.style.left=fx+'px'; c.flood.style.top=fy+'px';
   setState(c,c.state==='s1'?'s1':c.state,{extra:'go'});
   at(c,600,()=>{ setState(c,'s4',{extra:which}); markStep(which==='dec'?3:4); });
   at(c,1150,()=>setState(c,'s4',{extra:which+' settled'}));
@@ -341,20 +368,20 @@ function choose(c,which,manual){
   at(c,hold+350,()=>runStory(c));
 }
 function bindDrag(c){
-  const h=c.handle; let startX=0, startLeft=CENTER, dragging=false, scale=1;
+  const h=c.handle; let startX=0, startLeft=G(c).C, dragging=false, scale=1;
   const toBeat=()=>c.state==='s1'?1:c.state==='s2'?2:3;
-  h.addEventListener('pointerdown',e=>{ if(c.busy) return; dragging=true; clr(c); c.el.classList.remove('wait'); h.setPointerCapture(e.pointerId);
+  h.addEventListener('pointerdown',e=>{ if(c.busy||c.locked) return; dragging=true; clr(c); c.el.classList.remove('wait'); h.setPointerCapture(e.pointerId);
     scale=c.el.getBoundingClientRect().width/360; startX=e.clientX; startLeft=c.hx; setHandle(c,c.hx); });
-  h.addEventListener('pointermove',e=>{ if(!dragging) return; const x=Math.max(MINX,Math.min(MAXX,startLeft+(e.clientX-startX)/scale)); setHandle(c,x); });
-  const end=()=>{ if(!dragging) return; dragging=false; const d=c.hx-CENTER;
-    if(d<=-TRIG){ setHandle(c,MINX,'spring'); choose(c,'dec',true); }
-    else if(d>=TRIG){ setHandle(c,MAXX,'spring'); choose(c,'ans',true); }
-    else { setHandle(c,CENTER,'spring'); if(playing) schedule(c,toBeat()); else if(c.state==='s3') c.el.classList.add('wait'); } };
+  h.addEventListener('pointermove',e=>{ if(!dragging) return; const x=Math.max(G(c).MIN,Math.min(G(c).MAX,startLeft+(e.clientX-startX)/scale)); setHandle(c,x); });
+  const end=()=>{ if(!dragging) return; dragging=false; const d=c.hx-G(c).C;
+    if(d<=-TRIG){ setHandle(c,G(c).MIN,'spring'); choose(c,'dec',true); }
+    else if(d>=TRIG){ setHandle(c,G(c).MAX,'spring'); choose(c,'ans',true); }
+    else { setHandle(c,G(c).C,'spring'); if(NOSEARCH.has(c.el.dataset.c)&&c.state==='s3'){ if(playing) waitPhase(c); else c.el.classList.add('wait'); } else if(playing) schedule(c,toBeat()); else if(c.state==='s3') c.el.classList.add('wait'); } };
   h.addEventListener('pointerup',end); h.addEventListener('pointercancel',end);
-  h.addEventListener('keydown',e=>{ if(c.busy) return; if(e.key==='ArrowLeft'){ e.preventDefault(); setHandle(c,MINX,'slide'); setTimeout(()=>choose(c,'dec',true),300); }
-    if(e.key==='ArrowRight'){ e.preventDefault(); setHandle(c,MAXX,'slide'); setTimeout(()=>choose(c,'ans',true),300); } });
+  h.addEventListener('keydown',e=>{ if(c.busy||c.locked) return; if(e.key==='ArrowLeft'){ e.preventDefault(); setHandle(c,G(c).MIN,'slide'); setTimeout(()=>choose(c,'dec',true),300); }
+    if(e.key==='ArrowRight'){ e.preventDefault(); setHandle(c,G(c).MAX,'slide'); setTimeout(()=>choose(c,'ans',true),300); } });
 }
-function showStatic(i){ ctrls.forEach(c=>{ clr(c); c.busy=i>=3; setHandle(c,CENTER);
+function showStatic(i){ ctrls.forEach(c=>{ clr(c); c.locked=false; c.busy=i>=3; setHandle(c,G(c).C);
   if(i<3) setState(c,['s1','s2','s3'][i],{anim:false,extra:i===2?'wait':''});
   else { const w=i===3?'dec':'ans'; c.choice=w; setState(c,'s4',{anim:false,extra:w+' settled'}); } }); markStep(i); }
 /* ---------- V2 ---------- */
@@ -468,7 +495,7 @@ function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return
   if(r.v!==ver) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
-['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg','phone','b3','b4d_clean','b4a_clean']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg','phone','b3','b4d_clean','b4a_clean','handle']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 { const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
 </html>
