@@ -73,6 +73,9 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .note{color:var(--text-2);font-size:14px;line-height:18px;flex:1;min-width:0}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
 @media (max-width:760px){.grid{grid-template-columns:1fr}}
+/* C2 is hidden for now (code and Figma kept). Remove the hide-c2 class in the script to bring it back. */
+.hide-c2 .col[aria-label="Version C2"],.hide-c2 .act[data-c="c2"]{display:none}
+.hide-c2 .grid{grid-template-columns:minmax(0,1fr)}
 .col{display:flex;flex-direction:column;gap:16px;min-width:0;align-items:center}
 .label{display:flex;align-items:center;gap:8px;justify-content:center}
 /* Version tag: Title_Sm on Vee/Pale with Text/Accent Variant */
@@ -351,6 +354,7 @@ html.pvon,html.pvon body{overflow:hidden}
 </div>
 
 <script>
+const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
 const VER='?v=20261112m';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
@@ -474,6 +478,7 @@ const stepsEl=document.getElementById('steps');
 const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.className='step';x.type='button';x.textContent=name;
   x.addEventListener('click',()=>{ playing=false; play.textContent='Play'; play.setAttribute('aria-pressed','false'); showStatic(i); });
   stepsEl.appendChild(x);return x;});
+if(HIDE_C2) stepBtns[1].hidden=true; // Searching only exists in C2
 const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
 replay.addEventListener('click',()=>{ if(ver==='v1'){ playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); ctrls.forEach(c=>runStory(c,true)); } else restartDemo(); });
@@ -541,7 +546,7 @@ pv.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('keydown',e=>{ if(!pvOn) return; if(e.key==='Escape'){ e.preventDefault(); sheetOn?closeSheet():closePv(false); }
   else if((e.key==='m'||e.key==='M')&&!sheetOn) openSheet(); });
 function parseHash(){ const h=location.hash||''; const m=h.match(/^#pv\/(v1|v2)\/(c1|c2)$/);
-  return m?{pv:true,v:m[1],c:m[2]}:{pv:false,v:h==='#v2'?'v2':'v1'}; }
+  return m?{pv:true,v:m[1],c:HIDE_C2?'c1':m[2]}:{pv:false,v:h==='#v2'?'v2':'v1'}; }
 function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return; }
   const r=parseHash();
   if(r.pv){ if(!pvOn||r.v!==ver||r.c!==pvs.dataset.c) openPv(r.v,r.c,{push:false,fs:false}); return; }
