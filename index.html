@@ -131,7 +131,7 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes p1h{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:none}}
 .v1.nosearch.s0 .chev{opacity:0;animation:none}
 .v1.nosearch.s0 .pulse{opacity:0}
-.v1 .rows{position:absolute;left:0;top:0;width:360px;height:800px;pointer-events:none;transform-origin:180px 184.6px;transform:translate(0,89.4px) scale(1.21)}
+.v1 .rows{position:absolute;left:0;top:0;width:360px;height:800px;pointer-events:none;transform-origin:180px 217.8px;transform:translate(0,56px) scale(1.21)} /* original global 4-row layout, scaled 1.21 to the PH pill size, centred on the PH rows */
 .v1.nosearch.s0 .rows{animation:p1fade .9s ease-out 2.4s both}
 @keyframes p1fade{0%{opacity:0}100%{opacity:1}}
 .v1 .veel{position:absolute;left:224px;top:380px;width:64px;height:62px;opacity:0;transform-origin:60% 100%;pointer-events:none}
@@ -361,7 +361,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261112p';
+const VER='?v=20261112q';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -392,7 +392,7 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   if(ns){ mountDial(ctl); mountRows(ctl); mountVee(ctl); }
   setHandle(ctl,G(ctl).C); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
 /* Part 1 dial bubbles = the original global Part 1 motion (frames 0–100 extracted from AOS_Onboarding_Part1, answer button and caller text removed) */
-/* Part 2 background rows = global Part 2 "Floating call_2" (rows scroll left, white streaks), re-spaced to the PH 5-row layout and scaled 1.21 */
+/* Part 2 background rows = global Part 2 "Floating call_2" (rows scroll left, white streaks), original 4-row layout scaled 1.21 */
 let ROWS=null; const rowsData=fetch(A+'v1_c1_p2_rows.json'+VER).then(r=>r.json()).then(j=>ROWS=j).catch(()=>null);
 function mountRows(c){ const box=c.el.querySelector('.rows'); if(!box||!window.lottie) return;
   rowsData.then(()=>{ if(!ROWS) return; c.rows=lottie.loadAnimation({container:box,renderer:'svg',loop:true,autoplay:!reduce,animationData:JSON.parse(JSON.stringify(ROWS))}); c.rows.setSpeed(ROWS_SPEED); }); }
