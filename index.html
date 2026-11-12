@@ -183,6 +183,7 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .v1 .handle.slide{transition:left .55s cubic-bezier(.6,0,.3,1)}
 .v1 .handle:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .v1.wait .handle{animation:nudge 1.6s ease-in-out infinite}
+.v1.nosearch.wait .handle{animation:none} /* C1: handle stays still while waiting; the chevrons alone guide the swipe */
 @keyframes nudge{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(0)}60%{transform:translateX(9px)}80%{transform:translateX(0)}}
 .v1 .flood{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;opacity:0;transform:scale(1);pointer-events:none}
 .v1 .flood.dec{background:var(--ds-neg)} .v1 .flood.ans{background:var(--ds-accent)}
@@ -360,7 +361,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261112o';
+const VER='?v=20261112p';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
