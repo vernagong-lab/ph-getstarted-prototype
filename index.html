@@ -4,6 +4,7 @@
 <style>body{margin:0}</style>
 <meta charset="utf-8">
 <title>PH Get Started Prototype</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
 <style>
@@ -86,11 +87,12 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .v1 .phw .clip{pointer-events:auto}
 /* C1 (no Searching beat): the phone + screen layer vibrates while ringing */
 .v1.nosearch .clip{border-radius:30px}
-.v1.nosearch .pulse{top:103px}
-@keyframes ringT{0%{box-shadow:0 0 0 0 rgba(255,255,255,.28)}100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}}
+.v1.nosearch .pulse{left:59.75px;top:103.25px;background:#275566}
+@keyframes ringT{0%{box-shadow:0 0 0 0 rgba(255,255,255,0)}20%{box-shadow:0 0 0 3px rgba(255,255,255,.2)}100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}}
 .v1.nosearch.s1 .pulse{animation-name:ringT}
-.v1.nosearch.s1 .phw{animation:buzz 1.5s linear both;transform-origin:50% 36%}
-@keyframes buzz{0%,8%,46%,54%,100%{transform:none}10%,18%,26%,34%,56%,64%,72%,80%{transform:translateX(-2px) rotate(-1.2deg)}14%,22%,30%,38%,60%,68%,76%,84%{transform:translateX(2px) rotate(1.2deg)}42%,88%{transform:none}}
+.v1.nosearch .phw{translate:0 21.5px;scale:1.15;transform-origin:180px 292px}
+.v1.nosearch.s1 .phw{animation:buzz 1.5s linear both}
+@keyframes buzz{0%,8%,42%,46%,54%,88%,100%{transform:none}10%,18%,26%,34%,56%,64%,72%,80%{transform:translateX(-2px) rotate(-1.2deg)}14%,22%,30%,38%,60%,68%,76%,84%{transform:translateX(2px) rotate(1.2deg)}}
 .v1 .clip{position:absolute;left:88px;top:102px;width:184px;height:380px;border-radius:20px;overflow:hidden}
 .v1 .crop{position:absolute;background-size:360px 800px;background-repeat:no-repeat;pointer-events:none}
 .v1 .cd{left:0;top:94px;width:184px;height:122px;background-position:-88px -196px}
@@ -109,6 +111,44 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 /* Draggable handle: Figma handle export (48px) on the swipe pill; travel 16..120px inside the clip, centre 68 */
 .v1 .handle{position:absolute;top:308px;left:68px;width:48px;height:48px;border-radius:50%;background:center/48px 48px no-repeat;cursor:grab;touch-action:none;border:0;padding:0;-webkit-tap-highlight-color:transparent}
 .v1 .handle:active{cursor:grabbing}
+/* C1 Part 1 (Lottie part 1): splash pills rise → shrink into the centre → phone pops in → bars, glow and copy fade in → hand off to Part 2 */
+.screen.v1.nosearch{background:#f5f5f4}
+.v1 .p1{opacity:0;pointer-events:none;transform-origin:180px 340px}
+.v1.nosearch.s0 .p1{animation:p1pills 1.5s cubic-bezier(.25,.7,.3,1) both}
+@keyframes p1pills{0%{opacity:0;transform:translateY(320px)}12%{opacity:1}60%{opacity:1;transform:none}100%{opacity:0;transform:scale(.3)}}
+/* Zoom-out = global Part 1 Phone layer: position y eases over 0.82s (0.25,0.56,0.553,1), scale over 1.48s (0.263,0.597,0.402,1) */
+.v1.nosearch.s0 .phw{opacity:0;animation:p1vis 0s 2.35s both,p1tr .82s cubic-bezier(.25,.56,.553,1) 2.4s both,p1sc 1.48s cubic-bezier(.263,.597,.402,1) 2.4s both}
+@keyframes p1vis{to{opacity:1}}
+@keyframes p1tr{from{translate:0 107.5px}to{translate:0 21.5px}}
+@keyframes p1sc{from{scale:1.9565}to{scale:1.15}}
+.v1.nosearch.s0 .bgl{animation:p1bg .9s ease-out 2.4s both}
+@keyframes p1bg{0%{opacity:0;transform:scale(1.08)}100%{opacity:1;transform:none}}
+.v1.nosearch.s0 .handle{opacity:0;animation:p1hshow 0s linear 2.35s both}
+@keyframes p1hshow{to{opacity:1}}
+@keyframes p1h{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:none}}
+.v1.nosearch.s0 .chev{opacity:0;animation:none}
+.v1.nosearch.s0 .pulse{opacity:0}
+.v1 .rows{position:absolute;left:0;top:0;width:360px;height:800px;pointer-events:none;transform-origin:180px 184.6px;transform:translate(0,89.4px) scale(1.21)}
+.v1.nosearch.s0 .rows{animation:p1fade .9s ease-out 2.4s both}
+@keyframes p1fade{0%{opacity:0}100%{opacity:1}}
+.v1 .p1d{position:absolute;left:0;top:0;width:360px;height:800px;opacity:0;pointer-events:none}
+.v1.nosearch.s0 .p1d{opacity:1}
+.v1 .fs,.v1 .fspulse{opacity:0;pointer-events:none}
+.v1 .fs{inset:-2px;background-size:360px 800px;background-position:2px 2px}
+.screen.v1.nosearch.s0{animation:p1scr 3.9s linear both}
+@keyframes p1scr{0%,34%{background-color:#f5f5f4}41%,61.5%{background-color:#04394d}64%,100%{background-color:#f5f5f4}}
+.v1 .fspulse{position:absolute;left:116.5px;top:230px;width:126.5px;height:126.5px;border-radius:50%;background:#275566}
+.v1.nosearch.s0 .fs{animation:fsin 3.9s linear both}
+.v1.nosearch.s0 .fspulse{animation:fsin 3.9s linear both,ringF 1.1s ease-out 1.4s infinite}
+@keyframes fsin{0%,34%{opacity:0}41%{opacity:1}61.5%{opacity:1}64%,100%{opacity:0}}
+@keyframes ringF{0%{box-shadow:0 0 0 0 rgba(255,255,255,0)}20%{box-shadow:0 0 0 6px rgba(255,255,255,.2)}100%{box-shadow:0 0 0 31px rgba(255,255,255,0)}}
+/* Title + button: hidden in Part 1, slide in as Part 2 starts (title, then button +0.2s) */
+.v1 .ttl,.v1 .btm{pointer-events:none}
+.v1.nosearch.s0 .ttl,.v1.nosearch.s0 .btm{opacity:0}
+.v1.nosearch.p2in .ttl{animation:slidein .5s cubic-bezier(.2,.8,.2,1) both}
+.v1.nosearch.p2in .btm{animation:slidein .5s cubic-bezier(.2,.8,.2,1) .2s both}
+@keyframes slidein{0%{opacity:0;transform:translateY(24px)}100%{opacity:1;transform:none}}
+
 .v1.nosearch .handle{top:310px;width:44px;height:44px;background-size:44px 44px}
 /* C1 hint (end of intro): handle demo ±24, Decline end glows red then Answer end glows green; chevrons point both ways. Drag unlocks after the hint. */
 .v1 .eg{position:absolute;top:304px;width:80px;height:56px;opacity:0;pointer-events:none}
@@ -260,7 +300,7 @@ html.pvon,html.pvon body{overflow:hidden}
 
   <div class="vsel">
     <div class="tabs" role="tablist" aria-label="Presentation version">
-      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="Rings, then the Whoscall dialog shows “Scammer”. Drag the handle to Decline or Answer; left alone, it slides to Decline.">V1 · Simulated call</button>
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer” and a hint shows the handle can go both ways. Drag to Decline or Answer; left alone, it slides to Decline. Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
       <button class="tab" role="tab" aria-selected="false" data-v="v2" data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
     </div>
     <p class="vdesc" id="vdesc"></p>
@@ -312,19 +352,20 @@ html.pvon,html.pvon body{overflow:hidden}
 
 <script>
 const A='prototype_assets/';
-const VER='?v=20261112d';
+const VER='?v=20261112m';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ver='v1', playing=true; const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
-const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
+const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500, P1_LEN=3900; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
+const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   const ns=NOSEARCH.has(c); // C1: new teal phone (separate layer so it can vibrate), no Searching beat, result screens baked in
-  el.innerHTML=`<div class="layer" style="${bg(c,ns?'v1_C_bg.png':'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>
+  el.innerHTML=`<div class="layer bgl" style="${bg(c,ns?'v1_C_bg_nobars.png':'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>${ns?'<div class="rows" aria-hidden="true"></div><div class="p1d" aria-hidden="true"></div>':''}
   <div class="phw">${ns?`<div class="layer" style="${bg(c,'v1_C_phone.png')}"></div>`:''}
   <div class="clip"><i class="pulse"></i>
     ${ns?'':`<div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>`}
@@ -334,18 +375,31 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
     <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
     <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}${ns?'v1_c1_handle.png':'v1_handle.png'}${VER})"></button>
-  </div></div>
-  <div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${A}vee.svg${VER}" alt=""></div>`;
+  </div>${ns?VEE:''}</div>${ns?'':VEE}
+  ${ns?`<div class="layer fs" style="${bg(c,'v1_C_p1_fs.png')}" aria-hidden="true"></div><i class="fspulse" aria-hidden="true"></i>`:''}
+  ${ns?`<div class="layer ttl" style="${bg(c,'v1_C_title.png')}" role="img" aria-label="Know who's calling before you answer"></div><div class="layer btm" style="${bg(c,'v1_C_btm.png')}" aria-hidden="true"></div>`:''}`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
+  if(ns){ mountDial(ctl); mountRows(ctl); }
   setHandle(ctl,G(ctl).C); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
+/* Part 1 dial bubbles = the original global Part 1 motion (frames 0–100 extracted from AOS_Onboarding_Part1, answer button and caller text removed) */
+/* Part 2 background rows = global Part 2 "Floating call_2" (rows scroll left, white streaks), re-spaced to the PH 5-row layout and scaled 1.21 */
+let ROWS=null; const rowsData=fetch(A+'v1_c1_p2_rows.json'+VER).then(r=>r.json()).then(j=>ROWS=j).catch(()=>null);
+function mountRows(c){ const box=c.el.querySelector('.rows'); if(!box||!window.lottie) return;
+  rowsData.then(()=>{ if(!ROWS) return; c.rows=lottie.loadAnimation({container:box,renderer:'svg',loop:true,autoplay:!reduce,animationData:JSON.parse(JSON.stringify(ROWS))}); c.rows.setSpeed(ROWS_SPEED); }); }
+const ROWS_SPEED=0.6; // slower than global (1.0) so the background stays calm
+let DIAL=null; const dialData=fetch(A+'v1_c1_p1_dial.json'+VER).then(r=>r.json()).then(j=>DIAL=j).catch(()=>null);
+function mountDial(c){ const box=c.el.querySelector('.p1d'); if(!box||!window.lottie) return;
+  dialData.then(()=>{ if(!DIAL) return; c.dial=lottie.loadAnimation({container:box,renderer:'svg',loop:false,autoplay:false,animationData:JSON.parse(JSON.stringify(DIAL))});
+    if(c.state==='s0') c.dial.goToAndPlay(0,true); }); }
 function setState(c,st,{anim=true,extra=''}={}){ const ns=NOSEARCH.has(c.el.dataset.c); if(ns&&st==='s2') st='s3';
-  c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(ns?' nosearch':'')+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
+  c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(ns?' nosearch':'')+(c.p2in?' p2in':'')+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
 function clr(c){ c.timers.forEach(clearTimeout); c.timers=[]; }
 const at=(c,ms,fn)=>c.timers.push(setTimeout(fn,ms));
 function setHandle(c,x,mode){ const h=c.handle; h.classList.remove('spring','slide'); if(mode&&!reduce){ void h.offsetWidth; h.classList.add(mode); } h.style.left=x+'px'; c.hx=x; }
 function markStep(i){ stepBtns.forEach((b,j)=>b.classList.toggle('on',j===i)); }
 function schedule(c,from){ // continue the story from a beat
   clr(c); if(!playing||ver!=='v1') return;
+  if(from===0){ c.locked=true; c.p2in=false; c.el.className='screen v1'; void c.el.offsetWidth; setState(c,'s0'); markStep(0); if(c.dial) c.dial.goToAndPlay(0,true); at(c,P1_LEN,()=>{ c.p2in=true; schedule(c,1); at(c,900,()=>{ c.p2in=false; }); }); return; } // C1 Part 1: splash → welcome
   if(from<=1){ c.locked=NOSEARCH.has(c.el.dataset.c); setState(c,'s1',{anim:from===1}); markStep(0); at(c,T_S2,()=>schedule(c,2)); return; }
   if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
@@ -355,7 +409,7 @@ function schedule(c,from){ // continue the story from a beat
 }
 function waitPhase(c){ clr(c); c.locked=false; setState(c,'s3',{extra:'wait'}); if(!playing) return;
   at(c,AUTO_NS,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); }); }
-function runStory(c){ c.busy=false; setHandle(c,G(c).C); schedule(c,1); }
+function runStory(c,p1){ c.busy=false; setHandle(c,G(c).C); schedule(c,p1===true&&NOSEARCH.has(c.el.dataset.c)?0:1); }
 function choose(c,which,manual){
   if(ver!=='v1'||c.busy) return; c.busy=true; clr(c); c.choice=which;
   const fx=c.hx+G(c).HW/2, fy=332; c.flood.className='flood '+which; c.flood.style.left=fx+'px'; c.flood.style.top=fy+'px';
@@ -371,7 +425,7 @@ function bindDrag(c){
   const h=c.handle; let startX=0, startLeft=G(c).C, dragging=false, scale=1;
   const toBeat=()=>c.state==='s1'?1:c.state==='s2'?2:3;
   h.addEventListener('pointerdown',e=>{ if(c.busy||c.locked) return; dragging=true; clr(c); c.el.classList.remove('wait'); h.setPointerCapture(e.pointerId);
-    scale=c.el.getBoundingClientRect().width/360; startX=e.clientX; startLeft=c.hx; setHandle(c,c.hx); });
+    scale=c.el.getBoundingClientRect().width/360*(NOSEARCH.has(c.el.dataset.c)?1.15:1); startX=e.clientX; startLeft=c.hx; setHandle(c,c.hx); });
   h.addEventListener('pointermove',e=>{ if(!dragging) return; const x=Math.max(G(c).MIN,Math.min(G(c).MAX,startLeft+(e.clientX-startX)/scale)); setHandle(c,x); });
   const end=()=>{ if(!dragging) return; dragging=false; const d=c.hx-G(c).C;
     if(d<=-TRIG){ setHandle(c,G(c).MIN,'spring'); choose(c,'dec',true); }
@@ -422,13 +476,13 @@ const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.c
   stepsEl.appendChild(x);return x;});
 const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
-replay.addEventListener('click',restartDemo);
+replay.addEventListener('click',()=>{ if(ver==='v1'){ playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); ctrls.forEach(c=>runStory(c,true)); } else restartDemo(); });
 function setVer(v,push){
   ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
   document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===v; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
-  const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=!isV2;
+  const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=false; replay.textContent=isV2?'Restart demo':'Replay from splash';
   screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit(); pvFit();
-  if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(runStory); }
+  if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(c=>runStory(c,true)); }
   syncHash(push);
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setVer(t.dataset.v)));
@@ -495,7 +549,7 @@ function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return
   if(r.v!==ver) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
-['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg','phone','b3','b4d_clean','b4a_clean','handle']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg_nobars','phone','b3','b4d_clean','b4a_clean','handle','p1_fs','title','btm']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 { const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
 </html>
