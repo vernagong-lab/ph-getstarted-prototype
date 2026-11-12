@@ -134,6 +134,10 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .v1 .rows{position:absolute;left:0;top:0;width:360px;height:800px;pointer-events:none;transform-origin:180px 184.6px;transform:translate(0,89.4px) scale(1.21)}
 .v1.nosearch.s0 .rows{animation:p1fade .9s ease-out 2.4s both}
 @keyframes p1fade{0%{opacity:0}100%{opacity:1}}
+.v1 .veel{position:absolute;left:224px;top:380px;width:64px;height:62px;opacity:0;transform-origin:60% 100%;pointer-events:none}
+.v1 .veelin{position:absolute;left:0;top:0;width:360px;height:460px;transform-origin:179.5px 209px;transform:translate(-147.5px,-178px) scale(.467)}
+.v1.s4 .veel{opacity:1}
+.v1.anim.s4 .veel{animation:veein .6s cubic-bezier(.3,1.5,.5,1) .1s both}
 .v1 .p1d{position:absolute;left:0;top:0;width:360px;height:800px;opacity:0;pointer-events:none}
 .v1.nosearch.s0 .p1d{opacity:1}
 .v1 .fs,.v1 .fspulse{opacity:0;pointer-events:none}
@@ -356,7 +360,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261112m';
+const VER='?v=20261112o';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -367,6 +371,7 @@ const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>
 const T_S2=1500, T_S3=2700, AUTO=4500;
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
+const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   const ns=NOSEARCH.has(c); // C1: new teal phone (separate layer so it can vibrate), no Searching beat, result screens baked in
   el.innerHTML=`<div class="layer bgl" style="${bg(c,ns?'v1_C_bg_nobars.png':'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>${ns?'<div class="rows" aria-hidden="true"></div><div class="p1d" aria-hidden="true"></div>':''}
@@ -379,11 +384,11 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
     <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
     <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}${ns?'v1_c1_handle.png':'v1_handle.png'}${VER})"></button>
-  </div>${ns?VEE:''}</div>${ns?'':VEE}
+  </div>${ns?VEE_NS:''}</div>${ns?'':VEE}
   ${ns?`<div class="layer fs" style="${bg(c,'v1_C_p1_fs.png')}" aria-hidden="true"></div><i class="fspulse" aria-hidden="true"></i>`:''}
   ${ns?`<div class="layer ttl" style="${bg(c,'v1_C_title.png')}" role="img" aria-label="Know who's calling before you answer"></div><div class="layer btm" style="${bg(c,'v1_C_btm.png')}" aria-hidden="true"></div>`:''}`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
-  if(ns){ mountDial(ctl); mountRows(ctl); }
+  if(ns){ mountDial(ctl); mountRows(ctl); mountVee(ctl); }
   setHandle(ctl,G(ctl).C); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
 /* Part 1 dial bubbles = the original global Part 1 motion (frames 0–100 extracted from AOS_Onboarding_Part1, answer button and caller text removed) */
 /* Part 2 background rows = global Part 2 "Floating call_2" (rows scroll left, white streaks), re-spaced to the PH 5-row layout and scaled 1.21 */
@@ -391,11 +396,18 @@ let ROWS=null; const rowsData=fetch(A+'v1_c1_p2_rows.json'+VER).then(r=>r.json()
 function mountRows(c){ const box=c.el.querySelector('.rows'); if(!box||!window.lottie) return;
   rowsData.then(()=>{ if(!ROWS) return; c.rows=lottie.loadAnimation({container:box,renderer:'svg',loop:true,autoplay:!reduce,animationData:JSON.parse(JSON.stringify(ROWS))}); c.rows.setSpeed(ROWS_SPEED); }); }
 const ROWS_SPEED=0.6; // slower than global (1.0) so the background stays calm
+/* Result Vee = cheer expression from welcome_page_Android_Center.json (frames 152–420: cheer marks, happy eyes, sparkles; then loops the idle 240–420) */
+let VEEJ=null; const veeData=fetch(A+'v1_c1_vee_cheer.json'+VER).then(r=>r.json()).then(j=>VEEJ=j).catch(()=>null);
+function mountVee(c){ const box=c.el.querySelector('.veelin'); if(!box||!window.lottie) return;
+  veeData.then(()=>{ if(!VEEJ) return; const a=lottie.loadAnimation({container:box,renderer:'svg',loop:false,autoplay:false,animationData:JSON.parse(JSON.stringify(VEEJ))});
+    a.addEventListener('complete',()=>{ if(c.veeOn){ a.loop=true; a.playSegments([240,420],true); } }); c.vee=a; a.goToAndStop(300,true); }); }
+function veeState(c,st){ if(!c.vee) return; if(st==='s4'){ if(c.veeOn) return; c.veeOn=true; c.vee.loop=false; if(reduce){ c.vee.goToAndStop(195,true); return; } setTimeout(()=>{ if(c.veeOn) c.vee.playSegments([152,420],true); },100); } else if(c.veeOn){ c.veeOn=false; c.vee.loop=false; c.vee.goToAndStop(300,true); } }
 let DIAL=null; const dialData=fetch(A+'v1_c1_p1_dial.json'+VER).then(r=>r.json()).then(j=>DIAL=j).catch(()=>null);
 function mountDial(c){ const box=c.el.querySelector('.p1d'); if(!box||!window.lottie) return;
   dialData.then(()=>{ if(!DIAL) return; c.dial=lottie.loadAnimation({container:box,renderer:'svg',loop:false,autoplay:false,animationData:JSON.parse(JSON.stringify(DIAL))});
     if(c.state==='s0') c.dial.goToAndPlay(0,true); }); }
 function setState(c,st,{anim=true,extra=''}={}){ const ns=NOSEARCH.has(c.el.dataset.c); if(ns&&st==='s2') st='s3';
+  if(ns) veeState(c,st);
   c.state=st; c.extra=extra; c.el.className='screen v1 '+st+(ns?' nosearch':'')+(c.p2in?' p2in':'')+(anim&&!reduce?' anim':'')+(extra?' '+extra:''); }
 function clr(c){ c.timers.forEach(clearTimeout); c.timers=[]; }
 const at=(c,ms,fn)=>c.timers.push(setTimeout(fn,ms));
@@ -421,7 +433,7 @@ function choose(c,which,manual){
   at(c,600,()=>{ setState(c,'s4',{extra:which}); markStep(which==='dec'?3:4); });
   at(c,1150,()=>setState(c,'s4',{extra:which+' settled'}));
   if(!playing) return;
-  const hold=manual?4800:3800;
+  const hold=NOSEARCH.has(c.el.dataset.c)?(manual?7000:6000):(manual?4800:3800); // C1: let Vee's cheer + idle play longer before replay
   at(c,hold,()=>setState(c,'s4',{extra:which+' settled fadeout'}));
   at(c,hold+350,()=>runStory(c));
 }
