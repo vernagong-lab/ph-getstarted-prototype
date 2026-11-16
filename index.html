@@ -178,6 +178,15 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes shl{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(-2px)}}
 @keyframes shr{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(2px)}}
 .v1.nosearch.s4 .chev,.v1.nosearch.go .chev{opacity:0;animation:none}
+/* C1 Part 2 is non-interactive (2026-11-16): no handle, no chevrons. The pill ends glow (red, then green), red spreads from Decline across the pill, then the call auto-declines. */
+.v1.nosearch .handle,.v1.nosearch .chev{display:none}
+.v1.nosearch.glow .eg.l{animation:egin .4s ease-out .6s both} .v1.nosearch.glow .eg.r{animation:egin .4s ease-out 1.2s both}
+@keyframes egin{from{opacity:0}to{opacity:1}}
+.v1.nosearch.glow.still .eg{opacity:1;animation:none}
+.v1.nosearch.spread .eg.l,.v1.nosearch.go .eg.l{opacity:1;animation:none;width:160px;border-radius:28px;background:linear-gradient(90deg,rgba(255,77,94,.9),rgba(255,77,94,.4))}
+.v1.nosearch.spread .eg.l{transition:width .5s cubic-bezier(.5,0,.3,1)}
+.v1.nosearch.spread .eg.r{animation:egout .3s ease-in both} .v1.nosearch.go .eg.r{opacity:0;animation:none}
+@keyframes egout{from{opacity:1}to{opacity:0}}
 
 .v1 .handle.spring{transition:left .35s cubic-bezier(.3,1.5,.5,1)}
 .v1 .handle.slide{transition:left .55s cubic-bezier(.6,0,.3,1)}
@@ -308,7 +317,7 @@ html.pvon,html.pvon body{overflow:hidden}
 
   <div class="vsel">
     <div class="tabs" role="tablist" aria-label="Presentation version">
-      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer” and a hint shows the handle can go both ways. Drag to Decline or Answer; left alone, it slides to Decline. Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, then the call declines by itself (no interaction). Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
       <button class="tab" role="tab" aria-selected="false" data-v="v2" data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
     </div>
     <p class="vdesc" id="vdesc"></p>
@@ -361,7 +370,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261112q';
+const VER='?v=20261116a';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -370,6 +379,7 @@ let ver='v1', playing=true; const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
 const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500, P1_LEN=3900; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
+const GLOW_LEN=1800, SPREAD_LEN=500; // C1 Part 2 (static): glows 0.6–1.6s after the dialog, then red spreads 0.5s before the auto-decline
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
 const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
@@ -420,7 +430,8 @@ function schedule(c,from){ // continue the story from a beat
   if(from<=1){ c.locked=NOSEARCH.has(c.el.dataset.c); setState(c,'s1',{anim:from===1}); markStep(0); at(c,T_S2,()=>schedule(c,2)); return; }
   if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
-  if(NOSEARCH.has(c.el.dataset.c)){ c.locked=true; setState(c,'s3',{extra:'hint'}); markStep(2); at(c,HINT_AT+HINT_LEN,()=>waitPhase(c)); return; }
+  if(NOSEARCH.has(c.el.dataset.c)){ c.locked=true; setState(c,'s3',{extra:'glow'}); markStep(2); // C1: static auto-play, no drag
+    at(c,GLOW_LEN,()=>{ setState(c,'s3',{extra:'glow spread'}); at(c,SPREAD_LEN,()=>{ setHandle(c,G(c).MIN); choose(c,'dec',false); }); }); return; }
   setState(c,'s3',{extra:'wait'}); markStep(2);
   at(c,AUTO,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); });
 }
@@ -453,7 +464,7 @@ function bindDrag(c){
     if(e.key==='ArrowRight'){ e.preventDefault(); setHandle(c,G(c).MAX,'slide'); setTimeout(()=>choose(c,'ans',true),300); } });
 }
 function showStatic(i){ ctrls.forEach(c=>{ clr(c); c.locked=false; c.busy=i>=3; setHandle(c,G(c).C);
-  if(i<3) setState(c,['s1','s2','s3'][i],{anim:false,extra:i===2?'wait':''});
+  if(i<3) setState(c,['s1','s2','s3'][i],{anim:false,extra:i===2?(NOSEARCH.has(c.el.dataset.c)?'glow still':'wait'):''});
   else { const w=i===3?'dec':'ans'; c.choice=w; setState(c,'s4',{anim:false,extra:w+' settled'}); } }); markStep(i); }
 /* ---------- V2 ---------- */
 function renderV2(el){const c=el.dataset.c; el.className='screen v2'; el.style.setProperty('--p','.5');
@@ -491,7 +502,7 @@ const stepsEl=document.getElementById('steps');
 const stepBtns=BEATS.map((name,i)=>{const x=document.createElement('button');x.className='step';x.type='button';x.textContent=name;
   x.addEventListener('click',()=>{ playing=false; play.textContent='Play'; play.setAttribute('aria-pressed','false'); showStatic(i); });
   stepsEl.appendChild(x);return x;});
-if(HIDE_C2) stepBtns[1].hidden=true; // Searching only exists in C2
+if(HIDE_C2){ stepBtns[1].hidden=true; stepBtns[4].hidden=true; } // Searching only exists in C2; C1 has no Answer result (static auto-play)
 const play=document.getElementById('play'), replay=document.getElementById('replay'), v2note=document.getElementById('v2note');
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
 replay.addEventListener('click',()=>{ if(ver==='v1'){ playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); ctrls.forEach(c=>runStory(c,true)); } else restartDemo(); });
