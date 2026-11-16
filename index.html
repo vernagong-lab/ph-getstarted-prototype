@@ -178,8 +178,9 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes shl{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(-2px)}}
 @keyframes shr{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(2px)}}
 .v1.nosearch.s4 .chev,.v1.nosearch.go .chev{opacity:0;animation:none}
-/* C1 Part 2 is non-interactive (2026-11-16): no handle, no chevrons. The pill ends glow (red, then green), red spreads from Decline across the pill, then the call auto-declines. */
-.v1.nosearch .handle,.v1.nosearch .chev{display:none}
+/* C1 Part 2 is non-interactive (2026-11-16): the handle is part of the animation (no drag), no chevrons. The pill ends glow (red, then green), then the handle slides to Decline while red spreads across the pill, and the call declines. */
+.v1.nosearch .chev{display:none}
+.v1.nosearch .handle{pointer-events:none;cursor:default}
 .v1.nosearch.glow .eg.l{animation:egin .4s ease-out .6s both} .v1.nosearch.glow .eg.r{animation:egin .4s ease-out 1.2s both}
 @keyframes egin{from{opacity:0}to{opacity:1}}
 .v1.nosearch.glow.still .eg{opacity:1;animation:none}
@@ -317,7 +318,7 @@ html.pvon,html.pvon body{overflow:hidden}
 
   <div class="vsel">
     <div class="tabs" role="tablist" aria-label="Presentation version">
-      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, then the call declines by itself (no interaction). Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, then the handle slides to Decline by itself (no interaction). Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
       <button class="tab" role="tab" aria-selected="false" data-v="v2" data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
     </div>
     <p class="vdesc" id="vdesc"></p>
@@ -370,7 +371,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261116a';
+const VER='?v=20261116b';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -379,7 +380,7 @@ let ver='v1', playing=true; const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
 const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500, P1_LEN=3900; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
-const GLOW_LEN=1800, SPREAD_LEN=500; // C1 Part 2 (static): glows 0.6–1.6s after the dialog, then red spreads 0.5s before the auto-decline
+const GLOW_LEN=1800, SPREAD_LEN=560; // C1 Part 2 (static): glows 0.6–1.6s after the dialog, then the handle slides to Decline as red spreads (0.56s) before the call declines
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
 const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
@@ -399,7 +400,7 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   ${ns?`<div class="layer fs" style="${bg(c,'v1_C_p1_fs.png')}" aria-hidden="true"></div><i class="fspulse" aria-hidden="true"></i>`:''}
   ${ns?`<div class="layer ttl" style="${bg(c,'v1_C_title.png')}" role="img" aria-label="Know who's calling before you answer"></div><div class="layer btm" style="${bg(c,'v1_C_btm.png')}" aria-hidden="true"></div>`:''}`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
-  if(ns){ mountDial(ctl); mountRows(ctl); mountVee(ctl); }
+  if(ns){ mountDial(ctl); mountRows(ctl); mountVee(ctl); ctl.handle.tabIndex=-1; ctl.handle.setAttribute('aria-hidden','true'); } // C1 handle is animation only
   setHandle(ctl,G(ctl).C); setState(ctl,'s1',{anim:false}); bindDrag(ctl);}
 /* Part 1 dial bubbles = the original global Part 1 motion (frames 0–100 extracted from AOS_Onboarding_Part1, answer button and caller text removed) */
 /* Part 2 background rows = global Part 2 "Floating call_2" (rows scroll left, white streaks), original 4-row layout scaled 1.21 */
@@ -431,7 +432,7 @@ function schedule(c,from){ // continue the story from a beat
   if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
   if(NOSEARCH.has(c.el.dataset.c)){ c.locked=true; setState(c,'s3',{extra:'glow'}); markStep(2); // C1: static auto-play, no drag
-    at(c,GLOW_LEN,()=>{ setState(c,'s3',{extra:'glow spread'}); at(c,SPREAD_LEN,()=>{ setHandle(c,G(c).MIN); choose(c,'dec',false); }); }); return; }
+    at(c,GLOW_LEN,()=>{ setState(c,'s3',{extra:'glow spread'}); setHandle(c,G(c).MIN,'slide'); at(c,SPREAD_LEN,()=>choose(c,'dec',false)); }); return; }
   setState(c,'s3',{extra:'wait'}); markStep(2);
   at(c,AUTO,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); });
 }
