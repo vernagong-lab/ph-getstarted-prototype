@@ -178,15 +178,34 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes shl{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(-2px)}}
 @keyframes shr{0%,100%{opacity:.35;transform:none}50%{opacity:.9;transform:translateX(2px)}}
 .v1.nosearch.s4 .chev,.v1.nosearch.go .chev{opacity:0;animation:none}
-/* C1 Part 2 is non-interactive (2026-11-16): the handle is part of the animation (no drag), no chevrons. The pill ends glow (red, then green), then the handle slides to Decline while red spreads across the pill, and the call declines. */
+/* C1 Part 2 is non-interactive (2026-11-16): the handle is part of the animation (no drag), no chevrons. The pill ends glow (red, then green), then the handle slides to Decline while the green glow fades out (red stays put), and the call declines. */
 .v1.nosearch .chev{display:none}
 .v1.nosearch .handle{pointer-events:none;cursor:default}
-.v1.nosearch.glow .eg.l{animation:egin .4s ease-out .6s both} .v1.nosearch.glow .eg.r{animation:egin .4s ease-out 1.2s both}
+/* C1 dialog pop = jelly bounce (2026-11-16, per reference recording): grows from small with a slight tilt, squashes/stretches a few times, settles in ~0.75s */
+.v1.nosearch .c3{transform-origin:50% 50%}
+/* Dialog jelly (2026-11-16, values from the reference dialog-banner.html): grows in over 0.3s, then a damped squash/stretch
+   sx = 1+j, sy = 1-0.9j, j = 0.17·e^(-4.2u)·sin(15u) from u = 0.2s; no tilt (kept centred). Contents pop in one by one from 0.5s,
+   0.1s apart, each 0.35s: scale 0.5→1 with back-out overshoot (2.2), fade in over the first half. Keyframes are generated in JS (DLG_*). */
+.v1 .dsh{background-size:184px 122px;background-position:0 0}
+.v1 .dp{position:absolute;inset:0;background-size:184px 122px;background-position:0 0;background-repeat:no-repeat}
+.v1.nosearch.anim.s3 .c3{animation:dlgJelly var(--dlgD) linear both}
+.v1.nosearch.anim.s3 .dp0{animation:dlgP0 var(--dlgD) linear both} .v1.nosearch.anim.s3 .dp1{animation:dlgP1 var(--dlgD) linear both}
+.v1.nosearch.anim.s3 .dp2{animation:dlgP2 var(--dlgD) linear both} .v1.nosearch.anim.s3 .dp3{animation:dlgP3 var(--dlgD) linear both}
+.v1.nosearch.anim.s3 .dp4{animation:dlgP4 var(--dlgD) linear both}
+/* Glows start with the ringing ripple (2026-11-16): red (Decline) fades in with the ripple, green (Answer) follows 0.4s later so the light sweeps left to right; each 0.6s, then they stay lit while the dialog shows */
+.v1.nosearch.s1 .eg.l{animation:egin .6s ease-in-out both} .v1.nosearch.s1 .eg.r{animation:egin .6s ease-in-out .4s both}
+.v1.nosearch.glow .eg{opacity:1;animation:none}
 @keyframes egin{from{opacity:0}to{opacity:1}}
+/* Ringing ripple on the answer handle: two soft white rings, looping while the phone rings, stop once the handle slides to Decline */
+.v1.nosearch .handle::before,.v1.nosearch .handle::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0}
+.v1.nosearch.s1 .handle::before,.v1.nosearch.s1 .handle::after,.v1.nosearch.glow:not(.spread) .handle::before,.v1.nosearch.glow:not(.spread) .handle::after{opacity:1;animation:hripple 1.4s ease-out infinite}
+.v1.nosearch.s1 .handle::after,.v1.nosearch.glow:not(.spread) .handle::after{animation-delay:.7s}
+@keyframes hripple{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+.v1.nosearch.glow.still .handle::before{animation:none;box-shadow:0 0 0 5px rgba(255,255,255,.3)} .v1.nosearch.glow.still .handle::after{animation:none;opacity:0}
 .v1.nosearch.glow.still .eg{opacity:1;animation:none}
-.v1.nosearch.spread .eg.l,.v1.nosearch.go .eg.l{opacity:1;animation:none;width:160px;border-radius:28px;background:linear-gradient(90deg,rgba(255,77,94,.9),rgba(255,77,94,.4))}
-.v1.nosearch.spread .eg.l{transition:width .5s cubic-bezier(.5,0,.3,1)}
-.v1.nosearch.spread .eg.r{animation:egout .3s ease-in both} .v1.nosearch.go .eg.r{opacity:0;animation:none}
+/* Decline slide (2026-11-16): the red glow stays as it is (no stretch across the pill); only the green glow fades out while the handle slides left */
+.v1.nosearch.spread .eg.l,.v1.nosearch.go .eg.l{opacity:1;animation:none}
+.v1.nosearch.spread .eg.r{animation:egout .45s ease-out both} .v1.nosearch.go .eg.r{opacity:0;animation:none}
 @keyframes egout{from{opacity:1}to{opacity:0}}
 
 .v1 .handle.spring{transition:left .35s cubic-bezier(.3,1.5,.5,1)}
@@ -224,6 +243,10 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes bob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-4deg)}}
 @keyframes bubin{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:none}}
 @keyframes fadeclip{to{opacity:0}}
+.v1.nosearch .bub{will-change:transform,translate}
+/* C1 after Decline (2026-11-16): the bubble breathes with Vee. JS (veeSync) reads the Vee Lottie's current frame on every enterFrame and moves the bubble
+   by the same vertical offset Vee's body has in its idle loop (frames 240–420 = 3 s at 60 fps).
+   Uses the `translate` / `scale` properties so it never fights the pop-in transform. */
 /* ---------- V2: slider on the visible phone-screen rect (x50 y82 w260 h410) ---------- */
 .v2 .afterwrap{position:absolute;inset:0;clip-path:inset(0 0 0 calc((50px + 260px * var(--p))))}
 .v2 .glowl{opacity:var(--g,0);transition:opacity .25s ease-out}
@@ -371,7 +394,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261116b';
+const VER='?v=20261116d';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -380,7 +403,19 @@ let ver='v1', playing=true; const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
 const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500, P1_LEN=3900; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
-const GLOW_LEN=1800, SPREAD_LEN=560; // C1 Part 2 (static): glows 0.6–1.6s after the dialog, then the handle slides to Decline as red spreads (0.56s) before the call declines
+/* C1 dialog: parts in reveal order (icon, title, number line, description bar, Vee) with their centres in the 184×122 dialog crop */
+const DLG_PARTS=[{f:'p1_icon',x:32,y:30},{f:'p2_title',x:49,y:53},{f:'p3_number',x:72,y:72},{f:'p4_desc',x:70,y:102},{f:'p5_vee',x:150,y:103}];
+const DLG={grow:.3,s0:.55,jStart:.2,amount:.17,damp:4.2,freq:15,partsAt:.5,gap:.1,partLen:.35,back:2.2,len:1.3};
+(function(){ const cl=x=>x<0?0:x>1?1:x, seg=(t,a,b)=>cl((t-a)/(b-a)), eo=x=>1-Math.pow(1-x,3), eob=(x,s)=>{const c=s+1;return 1+c*Math.pow(x-1,3)+s*Math.pow(x-1,2);}, f=v=>+v.toFixed(4);
+  const N=78; let k='', parts=DLG_PARTS.map(()=>'');
+  for(let i=0;i<=N;i++){ const t=DLG.len*i/N, pc=f(100*i/N)+'%';
+    const p=eo(seg(t,0,DLG.grow)), base=DLG.s0+(1-DLG.s0)*p, u=t-DLG.jStart, j=(u<0||i===N)?0:DLG.amount*Math.exp(-DLG.damp*u)*Math.sin(DLG.freq*u);
+    k+=`${pc}{opacity:${f(p)};transform:scale(${f(base*(1+j))},${f(base*(1-.9*j))})}`;
+    DLG_PARTS.forEach((d,n)=>{ const a=DLG.partsAt+n*DLG.gap, q=seg(t,a,a+DLG.partLen), sc=q<=0?.5:.5+.5*eob(q,DLG.back);
+      parts[n]+=`${pc}{opacity:${f(eo(Math.min(1,q*2)))};transform:scale(${f(sc)})}`; }); }
+  const st=document.createElement('style'); st.textContent=`:root{--dlgD:${DLG.len}s}@keyframes dlgJelly{${k}}`+parts.map((p,n)=>`@keyframes dlgP${n}{${p}}`).join('');
+  document.head.appendChild(st); })();
+const GLOW_LEN=3200, SPREAD_LEN=560; // C1 Part 2 (static): glows are already lit from ringing; the dialog jelly + content reveal takes ~1.25s, then it holds ~2s so users can read it, then the handle slides to Decline as red spreads (0.56s) before the call declines
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
 const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
@@ -390,7 +425,7 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   <div class="phw">${ns?`<div class="layer" style="${bg(c,'v1_C_phone.png')}"></div>`:''}
   <div class="clip"><i class="pulse"></i>
     ${ns?'':`<div class="crop cd c2" style="${bg(c,'v1_C_b2.png')}"></div>`}
-    <div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>
+    ${ns?`<div class="crop cd c3 dsh" style="${bg(c,'v1_C_dlg_shell.png')}">${DLG_PARTS.map((d,i)=>`<i class="dp dp${i}" style="${bg(c,'v1_C_dlg_'+d.f+'.png')};transform-origin:${d.x}px ${d.y}px"></i>`).join('')}</div>`:`<div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>`}
     ${ns?'<i class="eg l"></i><i class="eg r"></i><span class="chev l" aria-hidden="true"><i></i><i></i></span><span class="chev r" aria-hidden="true"><i></i><i></i></span>':''}
     <i class="flood"></i>
     <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
@@ -412,7 +447,16 @@ const ROWS_SPEED=0.6; // slower than global (1.0) so the background stays calm
 let VEEJ=null; const veeData=fetch(A+'v1_c1_vee_cheer.json'+VER).then(r=>r.json()).then(j=>VEEJ=j).catch(()=>null);
 function mountVee(c){ const box=c.el.querySelector('.veelin'); if(!box||!window.lottie) return;
   veeData.then(()=>{ if(!VEEJ) return; const a=lottie.loadAnimation({container:box,renderer:'svg',loop:false,autoplay:false,animationData:JSON.parse(JSON.stringify(VEEJ))});
-    a.addEventListener('complete',()=>{ if(c.veeOn){ a.loop=true; a.playSegments([240,420],true); } }); c.vee=a; a.goToAndStop(300,true); }); }
+    a.addEventListener('complete',()=>{ if(c.veeOn){ a.loop=true; a.playSegments([240,420],true); } }); a.addEventListener('enterFrame',()=>veeSync(c)); c.vee=a; a.goToAndStop(300,true); }); }
+/* Vee body top (Lottie units, 360×460 comp) through the idle loop, sampled every 5 frames from 240 to 420; the bubble copies this offset (× the Vee layer scale .467) */
+const VEE_Y=[143.3,143.4,143.5,143.7,143.8,144.1,144.3,144.6,144.9,145.2,145.5,145.9,146.2,146.6,146.9,147.2,147.5,147.7,147.9,148.1,148.2,148.3,148.3,148.3,148.2,148.1,147.9,147.7,147.5,147.2,146.9,146.6,146.2,145.8,145.5,145.2,145.1];
+function veeSync(c){ const b=c.el.querySelector('.bub'); if(!b||!c.vee) return;
+  const f=c.vee.currentFrame+(c.vee.firstFrame||0); if(!c.veeOn||f<240){ b.style.translate=''; b.style.scale=''; return; }
+  const i=Math.min(VEE_Y.length-1.001,(f-240)/5), k=Math.floor(i), y=VEE_Y[k]+(VEE_Y[k+1]-VEE_Y[k])*(i-k);
+  // offset only (no scale: scaling the text every frame made it shimmer, and switching it on at frame 240 made the bubble jump);
+  // the small drift between frame 240 and 420 is removed so the loop restart is seamless, and the offset starts at 0 so the hand-off from the cheer is smooth
+  const off=(y-143.3)-(VEE_Y[VEE_Y.length-1]-143.3)*(f-240)/180;
+  b.style.translate=`0 ${(off*.467).toFixed(2)}px`; b.style.scale=''; }
 function veeState(c,st){ if(!c.vee) return; if(st==='s4'){ if(c.veeOn) return; c.veeOn=true; c.vee.loop=false; if(reduce){ c.vee.goToAndStop(195,true); return; } setTimeout(()=>{ if(c.veeOn) c.vee.playSegments([152,420],true); },100); } else if(c.veeOn){ c.veeOn=false; c.vee.loop=false; c.vee.goToAndStop(300,true); } }
 let DIAL=null; const dialData=fetch(A+'v1_c1_p1_dial.json'+VER).then(r=>r.json()).then(j=>DIAL=j).catch(()=>null);
 function mountDial(c){ const box=c.el.querySelector('.p1d'); if(!box||!window.lottie) return;
@@ -579,7 +623,7 @@ function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return
   if(r.v!==ver) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
-['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg_nobars','phone','b3','b4d_clean','b4a_clean','handle','p1_fs','title','btm']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
+['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg_nobars','phone','b3','b4d_clean','b4a_clean','handle','p1_fs','title','btm','dlg_shell','dlg_p1_icon','dlg_p2_title','dlg_p3_number','dlg_p4_desc','dlg_p5_vee']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
 { const r=parseHash(); if(r.pv) openPv(r.v,r.c,{push:false,fs:false}); else setVer(r.v); }
 </script>
 </html>
