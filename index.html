@@ -217,7 +217,7 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .v1.nosearch.glow.still .eg{opacity:1;animation:none}
 /* Decline slide (2026-11-16): the red glow stays as it is (no stretch across the pill); only the green glow fades out while the handle slides left */
 .v1.nosearch.spread .eg.l,.v1.nosearch.go .eg.l{opacity:1;animation:none}
-.v1.nosearch.spread .eg.r{animation:egout .45s ease-out both} .v1.nosearch.go .eg.r{opacity:0;animation:none}
+.v1.nosearch.spread .eg.r{animation:egout .5s ease-out both} .v1.nosearch.go .eg.r{opacity:0;animation:none}
 @keyframes egout{from{opacity:1}to{opacity:0}}
 
 .v1 .handle.spring{transition:left .35s cubic-bezier(.3,1.5,.5,1)}
@@ -245,10 +245,14 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .v1.nosearch.burst .c3,.v1.nosearch.anim.s3.burst .c3{z-index:3;animation:dlgZoomS .3s cubic-bezier(.4,0,.7,.2) both,dlgZoomO .3s linear both}
 @keyframes dlgZoomS{from{transform:scale(1)}to{transform:scale(3.4)}}
 @keyframes dlgZoomO{0%{opacity:1}20%{opacity:.85}100%{opacity:0}}
-.v1.nosearch.burst .c4d{opacity:1;z-index:1;animation:homein .3s ease-out .05s both}
+.v1.nosearch.burst .c4d{opacity:1;z-index:1;animation:homein .3s ease-out .25s both}
 @keyframes homein{from{opacity:0}to{opacity:1}}
-.v1.nosearch.burst .handle{visibility:visible;z-index:2;animation:hout .2s ease-in .05s both} /* slides to Decline in 0.25s, fades 0.05–0.25s: gone before the home screen is fully in (0.35s) */
-.v1.nosearch.burst .handle.slide{transition:left .25s cubic-bezier(.3,0,.2,1)} .v1.nosearch.burst .handle::before,.v1.nosearch.burst .handle::after{animation:none;opacity:0}
+/* Home screen elements fade in one by one after the screen itself (2026-11-16): clock → long bar → 4 app squares. Each element = a crop of the same
+   home image over a patch of the plain screen colour, so the screen first appears empty. */
+.v1 .hmk,.v1 .hel{position:absolute;left:12px;width:160px} .v1 .hmk{background:#04394d}
+.v1.nosearch.burst .hel{animation:homein .3s ease-out both} .v1.nosearch.burst .h1{animation-delay:.5s} .v1.nosearch.burst .h2{animation-delay:.7s} .v1.nosearch.burst .h3{animation-delay:.8s}
+.v1.nosearch.burst .handle{visibility:visible;z-index:2;animation:hout .2s ease-in .3s both} /* slides to Decline in 0.5s (slowed 2026-11-16), fades 0.3–0.5s: gone before the home screen is fully in (0.55s) */
+.v1.nosearch.burst .handle.slide{transition:left .5s cubic-bezier(.4,0,.2,1)} .v1.nosearch.burst .handle::before,.v1.nosearch.burst .handle::after{animation:none;opacity:0}
 @keyframes hout{to{opacity:0;transform:scale(.8)}}
 .v1.nosearch.s4 .c3{opacity:0} .v1.nosearch.anim.s4.dec .c4d{animation:none}
 .v1.nosearch.s4.burst .handle{visibility:hidden}
@@ -470,7 +474,7 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
     ${ns?`<div class="crop cd c3 dsh" style="${bg(c,'v1_C_dlg_shell.png')}">${DLG_PARTS.map((d,i)=>`<i class="dp dp${i}" style="${bg(c,'v1_C_dlg_'+d.f+'.png')};transform-origin:${d.x}px ${d.y}px"></i>`).join('')}</div>`:`<div class="crop cd c3" style="${bg(c,'v1_C_b3.png')}"></div>`}
     ${ns?'<i class="eg l"></i><i class="eg r"></i><span class="chev l" aria-hidden="true"><i></i><i></i></span><span class="chev r" aria-hidden="true"><i></i><i></i></span>':''}
     <i class="flood"></i>
-    <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
+    <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?[[58,34],[280,36],[326,36]].map(([t,h],i)=>`<i class="hmk" style="top:${t}px;height:${h}px"></i><i class="crop hel h${i+1}" style="${bg(c,'v1_C_b4d_clean.png')};top:${t}px;height:${h}px;background-position:-100px -${102+t}px"></i>`).join(''):''}${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
     <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}${ns?'v1_c1_handle.png':'v1_handle.png'}${VER})"></button>
   </div>${ns?VEE_NS:''}</div>${ns?'':VEE}
