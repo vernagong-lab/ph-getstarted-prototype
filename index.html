@@ -244,6 +244,15 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 @keyframes bubin{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:none}}
 @keyframes fadeclip{to{opacity:0}}
 .v1.nosearch .bub{will-change:transform,translate}
+/* C1 speech bubble (2026-11-16, Mobile DS): Colors/Surface/Default fill, Colors/Text/Primary text, Semibold, 20px corner radius (Dialog), centred copy;
+   a rounded tail on the right edge points at Vee. drop-shadow (not box-shadow) so the tail gets the same soft shadow. */
+/* Sizes are in the phone layer's local px (the layer is scaled 1.15): 21px side padding = 24px and a 7px tail-to-Vee gap = 8px on the 360-wide screen.
+   The box hugs the two fixed lines (max-content), and the tail sits on the straight middle of the right edge, overlapping the box by 2px so there is no seam. */
+.v1.nosearch .bub{right:155.7px;bottom:472.1px;width:max-content;max-width:none;padding:12px 21px;background:#ffffff;color:#262626d9;font:600 13px/17px var(--f-ui);text-align:center;text-wrap:nowrap;
+  border-radius:20px;box-shadow:none;filter:drop-shadow(0 4px 10px rgba(38,38,38,.18));transform-origin:100% 50%}
+/* Bubble + Vee are centred as one group in the phone screen (screen 88–272 × 102–482, centre x 180), then 20px (17.4 local) below the vertical centre; keeps the 8px gap */
+.v1.nosearch .veel{left:216.3px;top:285.9px}
+.v1.nosearch .bub::after{content:'';position:absolute;right:-4.7px;top:50%;width:12px;height:12px;margin-top:-6px;background:#ffffff;border-radius:2px;transform:rotate(45deg)}
 /* C1 after Decline (2026-11-16): the bubble breathes with Vee. JS (veeSync) reads the Vee Lottie's current frame on every enterFrame and moves the bubble
    by the same vertical offset Vee's body has in its idle loop (frames 240–420 = 3 s at 60 fps).
    Uses the `translate` / `scale` properties so it never fights the pop-in transform. */
@@ -418,7 +427,7 @@ const DLG={grow:.3,s0:.55,jStart:.2,amount:.17,damp:4.2,freq:15,partsAt:.5,gap:.
 const GLOW_LEN=3200, SPREAD_LEN=560; // C1 Part 2 (static): glows are already lit from ringing; the dialog jelly + content reveal takes ~1.25s, then it holds ~2s so users can read it, then the handle slides to Decline as red spreads (0.56s) before the call declines
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
-const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
+const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a<br>high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   const ns=NOSEARCH.has(c); // C1: new teal phone (separate layer so it can vibrate), no Searching beat, result screens baked in
   el.innerHTML=`<div class="layer bgl" style="${bg(c,ns?'v1_C_bg_nobars.png':'v1_C_b1.png')}" role="img" aria-label="${c.toUpperCase()} incoming call"></div>${ns?'<div class="rows" aria-hidden="true"></div><div class="p1d" aria-hidden="true"></div>':''}
