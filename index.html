@@ -55,9 +55,10 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 .lede a{color:var(--text-1);font-weight:600;text-decoration:underline;text-underline-offset:2px} /* Text/Link = Primary, Body_Link underline */
 /* Android Segmented Control: round track, 4px padding, 32px active tile in Content/Primary, unselected Text/Passive */
 .vsel{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
-.tabs{display:inline-grid;grid-template-columns:1fr 1fr;padding:4px;gap:0;background:var(--surface);border-radius:999px;max-width:100%}
+.tabs{display:inline-grid;grid-template-columns:repeat(3,auto);padding:4px;gap:0;background:var(--surface);border-radius:999px;max-width:100%}
 .tab{font:600 14px/18px var(--f-ui);border:0;background:transparent;color:var(--text-3);border-radius:99px;height:32px;padding:0 20px;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s}
 .tab[aria-selected="true"]{background:var(--content-1);color:var(--on-content-1)}
+@media (max-width:520px){.tabs{grid-template-columns:1fr;border-radius:20px}} /* 3 tabs don't fit on a phone: stack them */
 .vdesc{margin:0;color:var(--text-2);font-size:14px;line-height:18px;max-width:64ch;text-wrap:balance}  /* Body_Lg */
 .tab:focus-visible,.btn:focus-visible,.step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Card: Surface/Default, Radius md 16, 16px component padding */
@@ -387,7 +388,8 @@ html.pvon,html.pvon body{overflow:hidden}
 
   <div class="vsel">
     <div class="tabs" role="tablist" aria-label="Presentation version">
-      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, then the handle slides to Decline by itself (no interaction). Tap “Replay from splash” to see the opening again.">V1 · Simulated call</button>
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="C1 opens with the splash (call bubbles → phone pops in), then rings and vibrates; the Whoscall dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, then the handle slides to Decline by itself (no interaction), the home screen and Vee come in, and 6s after the Decline the screen contents and Vee fade out and it replays from ringing, until the user taps Get Started. Tap “Replay from splash” to see the opening again.">V1 · Decline + Vee</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="v1d" data-desc="Same as V1 up to the Whoscall dialog: the phone rings, the dialog shows “Scammer”, the Decline end glows red and the Answer end glows green, and then it stops there — no Decline, no Vee. The handle ripple keeps looping while the dialog stays on screen After 4s on the dialog, the screen contents fade out and it replays from ringing, until the user taps Get Started.">V1 · Ends at dialog</button>
       <button class="tab" role="tab" aria-selected="false" data-v="v2" data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
     </div>
     <p class="vdesc" id="vdesc"></p>
@@ -424,7 +426,8 @@ html.pvon,html.pvon body{overflow:hidden}
     <div class="sheet" role="dialog" aria-label="Switch prototype">
       <h2 class="sh-title">Switch prototype</h2>
       <div class="sh-chips" role="radiogroup" aria-label="Version">
-        <button class="chip" type="button" role="radio" data-v="v1">V1 · Simulated call</button>
+        <button class="chip" type="button" role="radio" data-v="v1">V1 · Decline + Vee</button>
+        <button class="chip" type="button" role="radio" data-v="v1d">V1 · Ends at dialog</button>
         <button class="chip" type="button" role="radio" data-v="v2">V2 · Before / After</button>
       </div>
       <div class="sh-list" role="radiogroup" aria-label="Message">
@@ -445,7 +448,8 @@ const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phon
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-let ver='v1', playing=true; const sliders=[];
+let ver='v1', mode='v1', END_DIALOG=false, playing=true; // mode = tab (v1 | v1d | v2); v1d = V1 that ends at the dialog
+ const sliders=[];
 const bg=(c,f)=>`background-image:url(${A}${f.replace('C',c)}${VER})`;
 const GEO={c1:{C:70,MIN:16,MAX:124,HW:44},c2:{C:68,MIN:16,MAX:120,HW:48}}, G=c=>GEO[c.el.dataset.c]||GEO.c2, TRIG=36; const HINT_AT=600, HINT_LEN=1200, AUTO_NS=3500, P1_LEN=4000; // C1: idle 3.5 s in wait → auto-slide to Decline           // handle left (px) inside the clip
 const T_S2=1500, T_S3=2700, AUTO=4500;
@@ -461,7 +465,9 @@ const DLG={grow:.3,s0:.55,jStart:.2,amount:.17,damp:4.2,freq:15,partsAt:.5,gap:.
       parts[n]+=`${pc}{opacity:${f(eo(Math.min(1,q*2)))};transform:scale(${f(sc)})}`; }); }
   const st=document.createElement('style'); st.textContent=`:root{--dlgD:${DLG.len}s}@keyframes dlgJelly{${k}}`+parts.map((p,n)=>`@keyframes dlgP${n}{${p}}`).join('');
   document.head.appendChild(st); })();
-const GLOW_LEN=3200, SPREAD_LEN=560; // C1 Part 2 (static): glows are already lit from ringing; the dialog jelly + content reveal takes ~1.25s, then it holds ~2s so users can read it, then the handle slides to Decline as red spreads (0.56s) before the call declines
+const GLOW_LEN=3200, SPREAD_LEN=560, DLG_END_HOLD=4000, VEE_END_HOLD=6000; // VEE_END_HOLD: Version A, from the Decline slide start to the fade-out before the replay
+// DLG_END_HOLD: V1 · Ends at dialog (same in the app): 4s from the dialog appearing, then the screen contents fade out (0.35s) and it replays from ringing; the background rows are their own loop and never restart
+ // C1 Part 2 (static): glows are already lit from ringing; the dialog jelly + content reveal takes ~1.25s, then it holds ~2s so users can read it, then the handle slides to Decline as red spreads (0.56s) before the call declines
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
 const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a<br>high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
@@ -526,6 +532,7 @@ function schedule(c,from){ // continue the story from a beat
   if(from===2&&NOSEARCH.has(c.el.dataset.c)){ schedule(c,3); return; }
   if(from===2){ setState(c,'s2'); markStep(1); at(c,T_S3-T_S2,()=>schedule(c,3)); return; }
   if(NOSEARCH.has(c.el.dataset.c)){ c.locked=true; setState(c,'s3',{extra:'glow'}); markStep(2); // C1: static auto-play, no drag
+    if(END_DIALOG){ if(!playing) return; at(c,DLG_END_HOLD,()=>setState(c,'s3',{extra:'glow fadeout'})); at(c,DLG_END_HOLD+350,()=>runStory(c)); return; } // V1 · Ends at dialog: stays on the dialog (ripple loops), then the prototype replays
     at(c,GLOW_LEN,()=>{ choose(c,'dec',false); setHandle(c,G(c).MIN,'slide'); }); return; } // C1: the dialog flies out as the handle starts sliding to Decline
   setState(c,'s3',{extra:'wait'}); markStep(2);
   at(c,AUTO,()=>{ setHandle(c,G(c).MIN,'slide'); at(c,560,()=>choose(c,'dec',false)); });
@@ -542,7 +549,7 @@ function choose(c,which,manual){
   at(c,cel?550:600,()=>{ setState(c,'s4',{extra:which+(cel?' burst':'')}); markStep(which==='dec'?3:4); });
   at(c,cel?2900:1150,()=>setState(c,'s4',{extra:which+' settled'}));
   if(!playing) return;
-  const hold=NOSEARCH.has(c.el.dataset.c)?(manual?7000:6000):(manual?4800:3800); // C1: let Vee's cheer + idle play longer before replay
+  const hold=NOSEARCH.has(c.el.dataset.c)?VEE_END_HOLD:(manual?4800:3800); // C1 Version A (same in the app): Vee's cheer + idle, then the screen contents and Vee fade out (0.35s) and it replays from ringing
   at(c,hold,()=>setState(c,'s4',{extra:which+' settled fadeout'}));
   at(c,hold+350,()=>runStory(c));
 }
@@ -604,9 +611,9 @@ const play=document.getElementById('play'), replay=document.getElementById('repl
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
 replay.addEventListener('click',()=>{ if(ver==='v1'){ playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); ctrls.forEach(c=>runStory(c,true)); } else restartDemo(); });
 function setVer(v,push){
-  ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
-  document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===v; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
-  const isV2=v==='v2'; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=false; replay.textContent=isV2?'Restart demo':'Replay from splash';
+  mode=v; END_DIALOG=v==='v1d'; v=v==='v2'?'v2':'v1'; ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
+  document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===mode; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
+  const isV2=v==='v2'; stepBtns[3].hidden=END_DIALOG; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=false; replay.textContent=isV2?'Restart demo':'Replay from splash';
   screens.forEach(s=> isV2? renderV2(s) : renderV1(s)); fit(); pvFit();
   if(isV2) restartDemo(); else { playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); if(reduce) showStatic(2); else ctrls.forEach(c=>runStory(c,true)); }
   syncHash(push);
@@ -624,7 +631,7 @@ let pvOn=false, pvPushed=false, suppressHash=false, sheetOn=false, scrimArmed=fa
 function pvFit(){ if(!pvOn) return; const s=Math.min(pv.clientWidth/360,pv.clientHeight/800);
   pvbox.style.width=360*s+'px'; pvbox.style.height=800*s+'px'; pvs.style.transform='scale('+s+')'; }
 new ResizeObserver(pvFit).observe(pv);
-function syncHash(push){ const h=pvOn?`#pv/${ver}/${pvs.dataset.c}`:'#'+ver;
+function syncHash(push){ const h=pvOn?`#pv/${mode}/${pvs.dataset.c}`:'#'+mode;
   try{ if(location.hash!==h) history[push?'pushState':'replaceState'](null,'',h); }catch(e){} }
 const FINE=matchMedia('(hover:hover) and (pointer:fine)').matches;
 document.getElementById('pvclose').addEventListener('click',()=>closePv(false));
@@ -640,18 +647,18 @@ function closePv(fromHistory){ if(!pvOn) return; closeSheet(); pvOn=false; pv.hi
   // Never call history.back() here: inside an embedding frame (e.g. the claude.ai viewer) it could step the parent page back.
   pvPushed=false; syncHash(false);
   document.getElementById('pvopen').focus({preventScroll:true}); }
-function markSheet(){ chips.forEach(x=>x.setAttribute('aria-checked',String(x.dataset.v===ver)));
+function markSheet(){ chips.forEach(x=>x.setAttribute('aria-checked',String(x.dataset.v===mode)));
   acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.c===pvs.dataset.c))); }
 const lockInputs=on=>pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=on; });
 function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton'); lockInputs(true); markSheet();
   (acts.find(a=>a.getAttribute('aria-checked')==='true')||acts[0]).focus({preventScroll:true}); }
 function closeSheet(){ if(!sheetOn) return; sheetOn=false; pv.classList.remove('sheeton'); lockInputs(false); }
 // Chip: switch the version right away behind the sheet (sheet stays open). Row: switch the message and close.
-chips.forEach(x=>x.addEventListener('click',()=>{ if(x.dataset.v!==ver){ openPv(x.dataset.v,pvs.dataset.c,{push:false}); lockInputs(true); } markSheet(); }));
-acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); openPv(ver,a.dataset.c,{push:false});
-  showToast(ver.toUpperCase()+' · '+a.dataset.c.toUpperCase()); }));
+chips.forEach(x=>x.addEventListener('click',()=>{ if(x.dataset.v!==mode){ openPv(x.dataset.v,pvs.dataset.c,{push:false}); lockInputs(true); } markSheet(); }));
+acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); openPv(mode,a.dataset.c,{push:false});
+  showToast(mode.toUpperCase()+' · '+a.dataset.c.toUpperCase()); }));
 document.getElementById('pvexit').addEventListener('click',()=>closePv(false));
-document.getElementById('pvopen').addEventListener('click',()=>openPv(ver,'c1'));
+document.getElementById('pvopen').addEventListener('click',()=>openPv(mode,'c1'));
 const scrim=document.getElementById('scrim');
 scrim.addEventListener('pointerdown',()=>{ scrimArmed=true; });
 scrim.addEventListener('click',()=>{ if(scrimArmed) closeSheet(); });
@@ -666,13 +673,13 @@ window.addEventListener('pointerup',lpEnd,true); window.addEventListener('pointe
 pv.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('keydown',e=>{ if(!pvOn) return; if(e.key==='Escape'){ e.preventDefault(); sheetOn?closeSheet():closePv(false); }
   else if((e.key==='m'||e.key==='M')&&!sheetOn) openSheet(); });
-function parseHash(){ const h=location.hash||''; const m=h.match(/^#pv\/(v1|v2)\/(c1|c2)$/);
-  return m?{pv:true,v:m[1],c:HIDE_C2?'c1':m[2]}:{pv:false,v:h==='#v2'?'v2':'v1'}; }
+function parseHash(){ const h=location.hash||''; const m=h.match(/^#pv\/(v1d|v1|v2)\/(c1|c2)$/);
+  return m?{pv:true,v:m[1],c:HIDE_C2?'c1':m[2]}:{pv:false,v:h==='#v2'?'v2':h==='#v1d'?'v1d':'v1'}; }
 function onHash(){ if(suppressHash){ suppressHash=false; syncHash(false); return; }
   const r=parseHash();
-  if(r.pv){ if(!pvOn||r.v!==ver||r.c!==pvs.dataset.c) openPv(r.v,r.c,{push:false,fs:false}); return; }
+  if(r.pv){ if(!pvOn||r.v!==mode||r.c!==pvs.dataset.c) openPv(r.v,r.c,{push:false,fs:false}); return; }
   if(pvOn){ closePv(true); return; }                      // Android back closes the preview, keeping the chosen version
-  if(r.v!==ver) setVer(r.v); }
+  if(r.v!==mode) setVer(r.v); }
 window.addEventListener('hashchange',onHash); window.addEventListener('popstate',onHash);
 new Image().src=`${A}v1_handle.png${VER}`;
 ['c1','c2'].forEach(c=>{(NOSEARCH.has(c)?['bg_nobars','phone','b3','b4d_clean','b4a_clean','handle','p1_fs','title','btm','dlg_shell','dlg_p1_icon','dlg_p2_title','dlg_p3_number','dlg_p4_desc','dlg_p5_vee']:['b1','b2','b3','b4d_clean','b4a_clean']).forEach(b=>{new Image().src=`${A}v1_${c}_${b}.png${VER}`;});['before','after','before_glow','after_glow'].forEach(s=>{new Image().src=`${A}v2_${c}_${s}.png${VER}`;});});
