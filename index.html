@@ -313,6 +313,22 @@ h1{font-size:24px;line-height:31px;font-weight:600;margin:0;text-wrap:balance}
 /* V1 · Ends at dialog replay: fade only the dialog and the two glows; the call screen and the handle (with its ripple) stay */
 .v1.nosearch.anim.s3.dfade .c3,.v1.nosearch.glow.dfade .eg.l,.v1.nosearch.glow.dfade .eg.r{animation:dfadeout .35s ease-in forwards}
 @keyframes dfadeout{from{opacity:1}to{opacity:0}}
+/* B: Part 2 A's three stars around the dialog (2026-11-19) — same count, size and keyframes as Vee's Star2/3/4 in v1_c1_vee_cheer5 (60fps), only re-placed:
+   size = 19.7 Lottie units × 0.467 (the Vee layer scale) = 9.2px; Star2 bottom-left, Star3 top-right, Star4 = Star3 + (12, 38) units like on Vee.
+   Star2/3: opacity 0→1 in 14f, →0 by 44f; scale 120%→150% in 37f (Lottie ease o(.391,-1.106) i(.056,3.754)); rotate 45°→180° in 37f (o(.564,0) i(.31,.796)).
+   Star4: opacity 0→1 in 14f, →0 by 33f; scale 120%→100% in 37f (o(.391,1.659) i(.056,-3.131)); rotate 45°→180° in 37f. Starts: Star2 +0, Star3 +22f, Star4 +36f. */
+.v1 .dstars{position:absolute;inset:0;pointer-events:none;z-index:4}
+.v1 .dst{position:absolute;width:9.2px;height:9.2px;opacity:0;scale:1.2;rotate:45deg}
+.v1 .dst svg{display:block;width:100%;height:100%}
+.v1 .dst.d2{left:85.4px;top:317.4px} .v1 .dst.d3{left:265.4px;top:190.4px} .v1 .dst.d4{left:271.3px;top:209.1px} /* 2026-11-19: ~6px out from the card corners; they may overlap the phone frame */
+.endB .v1.nosearch.anim.s3 .dst.d2{animation:dsO23 .9s linear 1.3s both,dsS23 .6167s cubic-bezier(.391,-1.106,.056,3.754) 1.3s both,dsR .6167s cubic-bezier(.564,0,.31,.796) 1.5s both}
+.endB .v1.nosearch.anim.s3 .dst.d3{animation:dsO23 .9s linear 1.6667s both,dsS23 .6167s cubic-bezier(.391,-1.106,.056,3.754) 1.6667s both,dsR .6167s cubic-bezier(.564,0,.31,.796) 1.8667s both}
+.endB .v1.nosearch.anim.s3 .dst.d4{animation:dsO4 .85s linear 1.9s both,dsS4 .6167s cubic-bezier(.391,1.659,.056,-3.131) 1.9s both,dsR .6167s cubic-bezier(.564,0,.31,.796) 2.1s both}
+@keyframes dsO23{0%{opacity:0;animation-timing-function:cubic-bezier(.167,.167,.833,.833)}25.93%{opacity:1;animation-timing-function:cubic-bezier(.167,.167,.833,.833)}100%{opacity:0}}
+@keyframes dsO4{0%{opacity:0;animation-timing-function:cubic-bezier(.167,.167,.833,.833)}27.45%{opacity:1;animation-timing-function:cubic-bezier(.167,.167,.833,.833)}100%{opacity:0}} /* 2026-11-19: fade-outs end later (0.9s / 0.85s) so the delayed turn is seen to the end; fade-in still 0.233s */
+@keyframes dsS23{from{scale:1.2}to{scale:1.5}}
+@keyframes dsS4{from{scale:1.2}to{scale:1}}
+@keyframes dsR{from{rotate:45deg}to{rotate:180deg}} /* 2026-11-19: the turn starts 0.2s after each star appears (it pops in first, then turns) */
 .v1.nosearch .bub{will-change:transform,translate}
 /* C1 speech bubble (2026-11-16, Mobile DS): Colors/Surface/Default fill, Colors/Text/Primary text, Semibold, 20px corner radius (Dialog), centred copy;
    a rounded tail on the right edge points at Vee. drop-shadow (not box-shadow) so the tail gets the same soft shadow. */
@@ -475,7 +491,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261119d';
+const VER='?v=20261120a';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -508,6 +524,9 @@ const GLOW_LEN=3200, SPREAD_LEN=560, DLG_END_HOLD=3750, VEE_END_HOLD=6150; // VE
  // C1 Part 2 (static): glows are already lit from ringing; the dialog jelly + content reveal takes ~1.25s, then it holds ~2s so users can read it, then the handle slides to Decline as red spreads (0.56s) before the call declines
 const ctrls=screens.map(el=>({el,timers:[],state:'s1',extra:'',choice:'dec',busy:false}));
 const VEE=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">You avoided a high-risk call!</span><span class="ba">Now you know who's calling you!</span></p><img src="${'prototype_assets/'}vee.svg" alt=""></div>`;
+const STAR_SVG=c=>`<svg viewBox="0 0 19.7 19.7" aria-hidden="true"><path fill="${c}" d="M6.7 13.5L6.2 13L.6 10.7L.6 9L6.2 6.7L6.7 6.2L9 .6L10.7 .6L13 6.2L13.5 6.7L19.1 9L19.1 10.7L13.5 13L13 13.5L10.7 19.1L9 19.1Z"/></svg>`;
+/* B · Ends at dialog (2026-11-19 trial): Vee's stars (same shape, colours and pop/turn/fade) at the dialog's top-right and bottom-left corners */
+const DSTARS=`<div class="dstars" aria-hidden="true"><i class="dst d2">${STAR_SVG('#0cd25f')}</i><i class="dst d3">${STAR_SVG('#0cd25f')}</i><i class="dst d4">${STAR_SVG('#0cd25f')}</i></div>`; // Mobile DS: all three = Colors/Vee/Default #0cd25f
 const VEE_NS=`<div class="vee" aria-live="polite"><p class="bub"><span class="bd">Nice! You dodged<br>a spam call.</span><span class="ba">Now you know who's calling you!</span></p><div class="veel" aria-hidden="true"><div class="veelin"></div></div></div>`;
 function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
   const ns=NOSEARCH.has(c); // C1: new teal phone (separate layer so it can vibrate), no Searching beat, result screens baked in
@@ -521,7 +540,7 @@ function renderV1(el){const c=el.dataset.c; const ctl=ctrls.find(x=>x.el===el);
     <div class="crop full c4d" style="${bg(c,'v1_C_b4d_clean.png')}">${ns?[[58,34],[280,36],[326,36]].map(([t,h],i)=>`<i class="hmk" style="top:${t}px;height:${h}px"></i><i class="crop hel h${i+1}" style="${bg(c,'v1_C_b4d_clean.png')};top:${t}px;height:${h}px;background-position:-100px -${102+t}px"></i>`).join(''):''}${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Call declined</span></div>'}</div>
     <div class="crop full c4a" style="${bg(c,'v1_C_b4a_clean.png')}">${ns?'':'<div class="b4"><p class="num">+63 123 456 0000</p><span class="rtag">Identified: Scammer</span></div>'}</div>
     <button type="button" class="handle" aria-label="Swipe handle: left arrow to Decline, right arrow to Answer" style="background-image:url(${A}${ns?'v1_c1_handle.png':'v1_handle.png'}${VER})"></button>
-  </div>${ns?VEE_NS:''}</div>${ns?'':VEE}
+  </div>${ns?DSTARS:''}${ns?VEE_NS:''}</div>${ns?'':VEE}
   ${ns?`<div class="layer fs" style="${bg(c,'v1_C_p1_fs.png')}" aria-hidden="true"></div><i class="fspulse" aria-hidden="true"></i><div class="fsov" aria-hidden="true"><i class="fsh"></i></div>`:''}
   ${ns?`<div class="layer ttl" style="${bg(c,'v1_C_title.png')}" role="img" aria-label="Know who's calling before you answer"></div><div class="layer btm" style="${bg(c,'v1_C_btm.png')}" aria-hidden="true"></div>`:''}`;
   ctl.handle=el.querySelector('.handle'); ctl.flood=el.querySelector('.flood');
@@ -649,7 +668,7 @@ const play=document.getElementById('play'), replay=document.getElementById('repl
 play.addEventListener('click',()=>{ playing=!playing; play.textContent=playing?'Pause':'Play'; play.setAttribute('aria-pressed',String(playing)); if(LT){ ctrls.forEach(c=>ltPause(c,!playing)); return; } if(playing) ctrls.forEach(runStory); else ctrls.forEach(clr); });
 replay.addEventListener('click',()=>{ if(ver==='v1'){ playing=true; play.textContent='Pause'; play.setAttribute('aria-pressed','true'); ctrls.forEach(c=>runStory(c,true)); } else restartDemo(); });
 function setVer(v,push){
-  mode=v; END_DIALOG=v==='v1d'; v=v==='v2'?'v2':'v1'; ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
+  mode=v; END_DIALOG=v==='v1d'; document.documentElement.classList.toggle('endB',END_DIALOG); v=v==='v2'?'v2':'v1'; ver=v; ctrls.forEach(clr); sliders.forEach(stopAuto); sliders.length=0;
   document.querySelectorAll('.tab').forEach(t=>{ const on=t.dataset.v===mode; t.setAttribute('aria-selected',String(on)); if(on) document.getElementById('vdesc').textContent=t.dataset.desc; });
   const isV2=v==='v2'; stepBtns[3].hidden=END_DIALOG; play.hidden=isV2; stepsEl.hidden=isV2; v2note.hidden=!isV2; replay.hidden=false; replay.textContent=isV2?'Restart demo':'Replay from splash';
   stepsEl.hidden=isV2||LT; ltBtn.hidden=isV2;
