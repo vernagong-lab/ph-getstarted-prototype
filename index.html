@@ -425,8 +425,8 @@ html.pvon,html.pvon body{overflow:hidden}
 
   <div class="vsel">
     <div class="tabs" role="tablist" aria-label="Presentation version">
-      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="Ends with the Decline: the dialog flies out, the home screen and Vee come in, then it replays from ringing.">V1 · Decline + Vee</button>
-      <button class="tab" role="tab" aria-selected="false" data-v="v1d" data-desc="Ends at the dialog: no Decline, no Vee — the dialog stays on screen, then it replays from ringing.">V1 · Ends at dialog</button>
+      <button class="tab" role="tab" aria-selected="true" data-v="v1" data-desc="Ends with the Decline: the dialog flies out, the home screen and Vee come in, then it replays from ringing.">A · Decline + Vee</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="v1d" data-desc="Ends at the dialog: no Decline, no Vee — the dialog stays on screen, then it replays from ringing.">B · Ends at dialog</button>
       <button class="tab" role="tab" aria-selected="false" data-v="v2" hidden data-desc="Drag the slider freely; toward After the background glows. It wiggles first, then slides to After by itself if left alone.">V2 · Before / After</button>
     </div>
     <p class="vdesc" id="vdesc"></p>
@@ -461,14 +461,9 @@ html.pvon,html.pvon body{overflow:hidden}
     <div class="scrim" id="scrim"></div>
     <div class="sheet" role="dialog" aria-label="Switch prototype">
       <h2 class="sh-title">Switch prototype</h2>
-      <div class="sh-chips" role="radiogroup" aria-label="Version">
-        <button class="chip" type="button" role="radio" data-v="v1">V1 · Decline + Vee</button>
-        <button class="chip" type="button" role="radio" data-v="v1d">V1 · Ends at dialog</button>
-        <button class="chip" type="button" role="radio" data-v="v2" hidden>V2 · Before / After</button>
-      </div>
-      <div class="sh-list" role="radiogroup" aria-label="Message">
-        <button class="act" type="button" role="radio" data-c="c1"><span class="wi" aria-hidden="true">&#xe905;</span><span class="txt"><span class="t1">C1 · Caller ID</span><span class="t2">Example: a phone call</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
-        <button class="act" type="button" role="radio" data-c="c2"><span class="wi" aria-hidden="true">&#xe906;</span><span class="txt"><span class="t1">C2 · Phone + Viber + WhatsApp</span><span class="t2">Example: a Viber call</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
+      <div class="sh-list" role="radiogroup" aria-label="Version">
+        <button class="act" type="button" role="radio" data-v="v1"><span class="wi" aria-hidden="true">&#xe905;</span><span class="txt"><span class="t1">A · Decline + Vee</span><span class="t2">Declines the call, then Vee on the home screen</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
+        <button class="act" type="button" role="radio" data-v="v1d"><span class="wi" aria-hidden="true">&#xe905;</span><span class="txt"><span class="t1">B · Ends at dialog</span><span class="t2">Stops on the Whoscall dialog</span></span><span class="wi chk" aria-hidden="true">&#xe90e;</span></button>
       </div>
       <button class="act swrow" type="button" role="switch" aria-checked="false" id="pvlt"><span class="txt"><span class="t1">Lottie preview</span><span class="t2">Play the real Lottie files</span></span><span class="lsw-k" aria-hidden="true"></span></button>
       <div class="sdiv" role="separator"></div>
@@ -690,7 +685,7 @@ new ResizeObserver(fit).observe(document.querySelector('.grid'));
    Hash: #v1 / #v2 for the page, #pv/<v>/<c> while previewing (shareable; opens straight into the preview).
    Long-press (500 ms, <10 px movement) anywhere opens the Android Action Sheet to switch V/C or exit. */
 const pv=document.getElementById('pv'), pvbox=document.getElementById('pvbox'), pvs=document.getElementById('pvscreen'), pvtoast=document.getElementById('pvtoast');
-const chips=[...pv.querySelectorAll('.chip[data-v]')], pvLt=document.getElementById('pvlt'), acts=[...pv.querySelectorAll('.act[data-c]')];
+const chips=[...pv.querySelectorAll('.chip[data-v]')], pvLt=document.getElementById('pvlt'), acts=[...pv.querySelectorAll('.act[data-v]')]; // 2026-11-19: the sheet lists versions A / B (C1 only)
 let pvOn=false, pvPushed=false, suppressHash=false, sheetOn=false, scrimArmed=false, lp=null, toastT=0;
 function pvFit(){ if(!pvOn) return; const s=Math.min(pv.clientWidth/360,pv.clientHeight/800);
   pvbox.style.width=360*s+'px'; pvbox.style.height=800*s+'px'; pvs.style.transform='scale('+s+')'; }
@@ -712,7 +707,7 @@ function closePv(fromHistory){ if(!pvOn) return; closeSheet(); pvOn=false; pv.hi
   pvPushed=false; syncHash(false);
   document.getElementById('pvopen').focus({preventScroll:true}); }
 function markSheet(){ chips.forEach(x=>x.setAttribute('aria-checked',String(x.dataset.v===mode))); pvLt.setAttribute('aria-checked',String(LT));
-  acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.c===pvs.dataset.c))); }
+  acts.forEach(a=>a.setAttribute('aria-checked',String(a.dataset.v===mode))); }
 const lockInputs=on=>pv.querySelectorAll('.pvbox input').forEach(i=>{ i.disabled=on; });
 function openSheet(){ sheetOn=true; scrimArmed=false; pv.classList.add('sheeton'); lockInputs(true); markSheet();
   (acts.find(a=>a.getAttribute('aria-checked')==='true')||acts[0]).focus({preventScroll:true}); }
@@ -720,8 +715,8 @@ function closeSheet(){ if(!sheetOn) return; sheetOn=false; pv.classList.remove('
 // Chip: switch the version right away behind the sheet (sheet stays open). Row: switch the message and close.
 pvLt.addEventListener('click',()=>{ setLT(!LT); lockInputs(true); markSheet(); });
 chips.forEach(x=>x.addEventListener('click',()=>{ if(x.dataset.v!==mode){ openPv(x.dataset.v,pvs.dataset.c,{push:false}); lockInputs(true); } markSheet(); }));
-acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); openPv(mode,a.dataset.c,{push:false});
-  showToast(mode.toUpperCase()+' · '+a.dataset.c.toUpperCase()); }));
+acts.forEach(a=>a.addEventListener('click',()=>{ closeSheet(); openPv(a.dataset.v,'c1',{push:false});
+  showToast(a.querySelector('.t1').textContent); }));
 document.getElementById('pvexit').addEventListener('click',()=>closePv(false));
 document.getElementById('pvopen').addEventListener('click',()=>openPv(mode,'c1'));
 const scrim=document.getElementById('scrim');
