@@ -528,7 +528,7 @@ html.pvon,html.pvon body{overflow:hidden}
 <script>
 const HIDE_C2=true; if(HIDE_C2) document.documentElement.classList.add('hide-c2');
 const A='prototype_assets/';
-const VER='?v=20261121l';
+const VER='?v=20261124a';
 const NOSEARCH=new Set(['c1']); // candidates that skip the Searching beat (phone vibrates instead)
 const BEATS=['Ringing','Searching','Identified','Declined','Answered'];
 const screens=[...document.querySelectorAll('.screen')];
@@ -719,7 +719,7 @@ function setVer(v,push){
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setVer(t.dataset.v)));
 /* ---------- Lottie preview ---------- */
 let LT=false; const ltBtn=document.getElementById('ltbtn');
-const LT_FILES={p1:'PH_Onboarding_Part1_EN.json',a:'PH_Onboarding_Part2_A_EN.json',b:'PH_Onboarding_Part2_B_EN.json'}, LTJ={};
+const LT_FILES={p1:'PH_Onboarding_Part1_EN_Android.json',a:'PH_Onboarding_Part2_A_EN_Android.json',b:'PH_Onboarding_Part2_B_EN.json'}, LTJ={};
 let ltData=null; const ltLoad=()=>ltData||(ltData=Promise.all(Object.entries(LT_FILES).map(([k,f])=>fetch('lottie_ph/'+f+VER).then(r=>r.json()).then(j=>LTJ[k]=j))));
 function setLT(on){ LT=on; ltBtn.setAttribute('aria-checked',String(on)); setVer(mode,false); }
 ltBtn.addEventListener('click',()=>setLT(!LT));
